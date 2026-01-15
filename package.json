@@ -1,0 +1,14 @@
+{
+    "name": "typed-js-ast",
+    "version": "0.1.0",
+    "type": "module",
+    "dependencies": {
+        "acorn": "^8.15.0",
+        "acorn-typescript": "^1.4.13",
+        "escodegen": "^2.1.0",
+        "estree-walker": "^3.0.3"
+    },
+    "bin": {
+        "typedjs": "./src/cli.js"
+    }
+}
