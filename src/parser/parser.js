@@ -1,3 +1,5 @@
+// Updated src/parser/parser.js - Added support for null, undefined, bigint, symbol
+
 import { Parser } from "acorn";
 import ts from "acorn-typescript";
 import { walk } from 'estree-walker';
@@ -7,6 +9,14 @@ import { walk } from 'estree-walker';
  */
 function tsTypeToString(typeNode, registry = []) {
   switch (typeNode.type) {
+    case "TSNullKeyword":
+      return "null";
+    case "TSUndefinedKeyword":
+      return "undefined";
+    case "TSBigIntKeyword":
+      return "bigint";
+    case "TSSymbolKeyword":
+      return "symbol";
     case "TSStringKeyword":
       return "string";
     case "TSNumberKeyword":
@@ -57,7 +67,7 @@ export function parseCode(source) {
 
   const typeRegistry = [];
 
-  // Pass 1: Interfaces + type aliases (for literal unions)
+  // Pass 1: Interfaces + type aliases
   walk(ast, {
     enter(node) {
       if (node.type === "TSInterfaceDeclaration") {
@@ -78,14 +88,13 @@ export function parseCode(source) {
     }
   });
 
-  // Pass 2: Variables + functions (resolve aliases/refs)
+  // Pass 2: Variables + functions (resolve aliases)
   walk(ast, {
     enter(node) {
       if (node.type === "VariableDeclaration") {
         for (const decl of node.declarations) {
           if (decl.id.typeAnnotation) {
             let type = tsTypeToString(decl.id.typeAnnotation.typeAnnotation, typeRegistry);
-            // Resolve type alias if reference
             if (typeof type === 'string') {
               const alias = typeRegistry.find(e => e.kind === 'typeAlias' && e.name === type);
               if (alias) type = alias.type;

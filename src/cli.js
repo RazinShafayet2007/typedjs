@@ -2,7 +2,7 @@
 import fs from "fs";
 import path from "path";
 import { parseCode } from "./parser/parser.js";
-import { analyze } from "./analyzer/analyzer.js";
+import { staticAnalyze, analyze } from "./analyzer/analyzer.js"; // Add staticAnalyze
 import { generate } from "./generator/generator.js";
 
 const args = process.argv.slice(2);
@@ -15,21 +15,19 @@ if (!args[0]) {
 const filePath = path.resolve(args[0]);
 const source = fs.readFileSync(filePath, "utf-8");
 
-// Parse AST and collect types
 const { ast, typeRegistry } = parseCode(source);
 
-// Analyze (currently minimal)
-analyze(typeRegistry);  // Note: analyzer might need updates later for functions
+// Static analysis first
+staticAnalyze(typeRegistry, ast);
 
-// Generate JS with runtime checks
+// Old minimal analyze
+analyze(typeRegistry);
+
 const output = generate(ast, typeRegistry);
 
-// Write to temporary file
 const tmpFile = path.resolve("./typedjs_temp.js");
 fs.writeFileSync(tmpFile, output);
 
-// Execute the temporary file
 await import(tmpFile);
 
-// Delete temporary file
 fs.unlinkSync(tmpFile);

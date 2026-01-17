@@ -1,19 +1,9 @@
-type Direction = "up" | "down" | "left" | "right";
+let staticBad: number | bigint = "wrong"; // Static error (string literal)
 
-type Status = "idle" | "loading" | true;
-
-let dir: Direction = "up"; // good
-
-let badDir: Direction = "diagonal"; // warn
-
-let status: Status = true; // good
-
-let badStatus: Status = 42; // warn
-
-function move(d: Direction): Direction {
-  return d;
+function badReturn(): bigint {
+  return 42n; // good
 }
 
-console.log(move("left")); // good
-console.log(move("down")); // good
-console.log(move("oops")); // warn on param + return
+function worseReturn(): symbol {
+  return "not symbol"; // Static error
+}

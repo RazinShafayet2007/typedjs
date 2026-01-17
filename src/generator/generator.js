@@ -1,10 +1,10 @@
-// Final fixed src/generator/generator.js - Literal types/enums fully supported + Crash fixed (removes TSTypeAliasDeclaration)
+// Updated src/generator/generator.js - Added runtime checks for null, undefined, bigint, symbol
 
 import escodegen from 'escodegen';
 import { walk } from 'estree-walker';
 
 function transformAst(ast, typeRegistry) {
-  // Safely remove compile-time TS nodes (interfaces + type aliases) before any traversal/generation
+  // Remove compile-time TS nodes
   if (ast.body) {
     ast.body = ast.body.filter(node => 
       node.type !== 'TSInterfaceDeclaration' &&
@@ -12,7 +12,7 @@ function transformAst(ast, typeRegistry) {
     );
   }
 
-  // Helper to create AST nodes for checks
+  // Helpers for check injection
   function createCheckCall(name, valueExpr, type) {
     return {
       type: 'CallExpression',
@@ -36,7 +36,6 @@ function transformAst(ast, typeRegistry) {
     };
   }
 
-  // Collect function info
   const funcTypes = {};
   typeRegistry.forEach(entry => {
     if (entry.kind === 'function') {
@@ -44,14 +43,11 @@ function transformAst(ast, typeRegistry) {
     }
   });
 
-  // Traverse AST for annotation removal + check injection
   walk(ast, {
     enter(node) {
-      // Remove remaining type annotations (params, returns, etc.)
       if (node.typeAnnotation) node.typeAnnotation = null;
       if (node.returnType) node.returnType = null;
 
-      // Inject parameter checks for functions
       if (node.type === 'FunctionDeclaration' && node.id && funcTypes[node.id.name]?.params?.length > 0) {
         const params = funcTypes[node.id.name].params;
         const checkStmts = params.map(p => ({
@@ -64,18 +60,15 @@ function transformAst(ast, typeRegistry) {
           }]
         }));
 
-        // Rename original params to __arg_
         node.params = node.params.map((param, i) => {
           if (params[i]) param.name = `__arg_${param.name}`;
           return param;
         });
 
-        // Prepend checks to body
         node.body.body = [...checkStmts, ...node.body.body];
       }
     },
     leave(node, parent) {
-      // Inject return checks
       if (node.type === 'ReturnStatement' && parent?.type === 'BlockStatement' && parent.parent?.type === 'FunctionDeclaration' && parent.parent.id) {
         const funcName = parent.parent.id.name;
         const returnType = funcTypes[funcName]?.returnType;
@@ -109,7 +102,6 @@ function typeToString(t) {
     if (t.kind === 'set') return 'Set<' + typeToString(t.elementType) + '>';
     if (t.kind === 'tuple') return '[' + t.elements.map(typeToString).join(', ') + ']';
     if (t.kind === 'optional') return typeToString(t.type) + '?';
-    // Object shape fallback
     return '{' + Object.keys(t).map(k => k + ': ' + typeToString(t[k])).join(', ') + '}';
   }
   return t;
@@ -119,13 +111,17 @@ function __checkType__(name, value, typeJson) {
   const type = JSON.parse(typeJson);
   const typeStr = typeToString(type);
 
-  // Union of literals/primitives (array)
+  // Union
   if (Array.isArray(type)) {
     const ok = type.some(member => {
       if (typeof member === 'string') {
         if (member === 'string') return typeof value === 'string';
         if (member === 'number') return typeof value === 'number';
         if (member === 'boolean') return typeof value === 'boolean';
+        if (member === 'null') return value === null;
+        if (member === 'undefined') return value === undefined;
+        if (member === 'bigint') return typeof value === 'bigint';
+        if (member === 'symbol') return typeof value === 'symbol';
         if (member === 'unknown') return true;
         return false;
       }
@@ -148,7 +144,7 @@ function __checkType__(name, value, typeJson) {
     return value;
   }
 
-  // Primitive string (backward compat for old unions)
+  // Primitive (including new ones)
   if (typeof type === 'string') {
     if (type === 'any') return value;
     const allowed = type.split('|').map(s => s.trim());
@@ -156,6 +152,10 @@ function __checkType__(name, value, typeJson) {
       if (a === 'string') return typeof value === 'string';
       if (a === 'number') return typeof value === 'number';
       if (a === 'boolean') return typeof value === 'boolean';
+      if (a === 'null') return value === null;
+      if (a === 'undefined') return value === undefined;
+      if (a === 'bigint') return typeof value === 'bigint';
+      if (a === 'symbol') return typeof value === 'symbol';
       if (a === 'unknown') return true;
       return false;
     });
@@ -163,7 +163,7 @@ function __checkType__(name, value, typeJson) {
     return value;
   }
 
-  // Structured types (array, map, set, tuple, optional, object)
+  // Structured types (unchanged)
   if (typeof type === 'object' && type !== null) {
     if (type.kind === 'array') {
       if (!Array.isArray(value)) {
