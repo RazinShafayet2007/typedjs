@@ -1,7 +1,7 @@
 // @ts-nocheck
 
-import typedjs from 'eslint-plugin-typedjs';
+const typedjs = require('eslint-plugin-typedjs');
 
-export default [
+module.exports = [
   ...typedjs.configs.recommended
 ];
