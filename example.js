@@ -1,9 +1,16 @@
-let staticBad: number | bigint = "wrong"; // Static error (string literal)
-
-function badReturn(): bigint {
-  return 42n; // good
+interface User {
+  name: string;
+  age: number;
 }
 
-function worseReturn(): symbol {
-  return "not symbol"; // Static error
-}
+// Case 1: Wrong type inside object
+let person1: User = {
+  name: "Razin",
+  age: "twenty" // Should error: Expected 'number' but got 'string'
+};
+
+// Case 2: Missing property
+let person2: User = {
+  name: "Shafayet"
+  // Should error: Property 'age' is missing in type 'User'
+};
