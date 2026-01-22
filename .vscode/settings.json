@@ -1,0 +1,15 @@
+{
+    "eslint.options": {
+        "overrideConfig": {
+            "languageOptions": {
+                "parser": "/home/razin/.vscode/extensions/razinshafayet.typedjs-vscode-0.0.1/server/parser.js"
+            },
+            "rules": {
+                "no-op": "error"
+            }
+        },
+        "rulePaths": [
+            "/home/razin/.vscode/extensions/razinshafayet.typedjs-vscode-0.0.1/server/rules"
+        ]
+    }
+}
