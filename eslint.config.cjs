@@ -1,13 +1,23 @@
-// typed-js/eslint.config.cjs
-const typedjs = require("eslint-plugin-typedjs");
+const parser = require("/home/razin/.vscode/extensions/razinshafayet.typedjs-vscode-0.0.1/server/parser.js");
+const noOp = require("/home/razin/.vscode/extensions/razinshafayet.typedjs-vscode-0.0.1/server/rules/no-op.js");
+
+const typedjsPlugin = {
+  rules: {
+    "no-op": noOp
+  }
+};
 
 module.exports = [
-  ...typedjs.configs.recommended,
   {
     files: ["**/*.js"],
-    // You can override rules here if you want
+    languageOptions: {
+      parser: parser
+    },
+    plugins: {
+      typedjs: typedjsPlugin
+    },
     rules: {
-      "typedjs/no-op": "error" 
+      "typedjs/no-op": "error"
     }
   }
 ];
