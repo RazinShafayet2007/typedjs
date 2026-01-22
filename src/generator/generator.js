@@ -3,13 +3,18 @@
 import escodegen from 'escodegen';
 import { walk } from 'estree-walker';
 
-function transformAst(ast, typeRegistry) {
+function transformAst(ast, typeRegistry, mode) {
   // Remove compile-time TS nodes
   if (ast.body) {
     ast.body = ast.body.filter(node => 
       node.type !== 'TSInterfaceDeclaration' &&
       node.type !== 'TSTypeAliasDeclaration'
     );
+  }
+
+  // If production mode, stop here! (No runtime checks)
+  if (mode === 'production') {
+    return ast;
   }
 
   // Helpers for check injection
@@ -82,13 +87,17 @@ function transformAst(ast, typeRegistry) {
   return ast;
 }
 
-export function generate(ast, typeRegistry) {
-  const transformedAst = transformAst(ast, typeRegistry);
+export function generate(ast, typeRegistry, mode = 'development') {
+  const transformedAst = transformAst(ast, typeRegistry, mode);
 
   let transformed = escodegen.generate(transformedAst, {
     format: { indent: { style: '  ' } },
     comment: true,
   });
+
+  if (mode === 'production') {
+    return transformed;
+  }
 
   const helpers = `
 function typeToString(t) {

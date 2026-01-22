@@ -28,6 +28,59 @@ export function staticAnalyze(typeRegistry, ast) {
     return true;
   }
 
+  function checkType(name, valueNode, type, errors) {
+    // 1. Literal Check
+    if (valueNode.type === 'Literal' || valueNode.type === 'BigIntLiteral') {
+        const value = valueNode.value ?? valueNode.bigint;
+        if (!matchesType(value, type)) {
+             errors.push(`[Static type error] Property '${name}' got ${JSON.stringify(value)}, expected ${typeToString(type)}`);
+        }
+        return;
+    }
+
+    // 2. Object Check
+    if (valueNode.type === 'ObjectExpression' && typeof type === 'object' && type.kind !== 'literal') {
+        checkObject(name, valueNode, type, errors);
+        return;
+    }
+
+    // 3. Array Check (Simple)
+    if (valueNode.type === 'ArrayExpression' && type.kind === 'array') {
+        valueNode.elements.forEach((elem, i) => {
+            if (elem) checkType(`${name}[${i}]`, elem, type.elementType, errors);
+        });
+        return;
+    }
+  }
+
+  function checkObject(name, objectExpr, type, errors) {
+    if (typeof type !== 'object' || type === null) return; // Can't check primitive vs object here easily without more logic
+
+    // Convert AST ObjectExpression props to a map for easy lookup
+    const props = {};
+    objectExpr.properties.forEach(p => {
+        if (p.type === 'Property' && p.key.type === 'Identifier') {
+            props[p.key.name] = p.value;
+        }
+    });
+
+    // Check against interface definition (type is the shape object)
+    for (const [key, expectedType] of Object.entries(type)) {
+        const isOptional = expectedType.kind === 'optional';
+        const actualType = isOptional ? expectedType.type : expectedType;
+
+        if (!(key in props)) {
+            if (!isOptional) {
+                errors.push(`[Static type error] Property '${key}' is missing in object '${name}' (expected type ${typeToString(type)})`);
+            }
+            continue;
+        }
+
+        const valueNode = props[key];
+        checkType(`${name}.${key}`, valueNode, actualType, errors);
+    }
+  }
+
   // Map variable names to types
   const varTypes = {};
   typeRegistry.forEach(entry => {
@@ -56,11 +109,14 @@ export function staticAnalyze(typeRegistry, ast) {
       // Check variable initializer (only simple literals)
       if (node.type === 'VariableDeclarator' && node.init && varTypes[node.id.name]) {
         if (node.init.type === 'Literal' || node.init.type === 'BigIntLiteral') {
-          const value = node.init.value ?? node.init.bigint; // bigint handling
+          const value = node.init.value ?? node.init.bigint;
           const declaredType = varTypes[node.id.name];
           if (!matchesType(value, declaredType)) {
             errors.push(`[Static type error] Variable '${node.id.name}' initializer ${JSON.stringify(value)} does not match declared type ${typeToString(declaredType)}`);
           }
+        } else if (node.init.type === 'ObjectExpression') {
+           const declaredType = varTypes[node.id.name];
+           checkObject(node.id.name, node.init, declaredType, errors);
         }
       }
 

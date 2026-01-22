@@ -7,23 +7,32 @@ import { generate } from "./generator/generator.js";
 
 const args = process.argv.slice(2);
 
-if (!args[0]) {
-  console.error("Usage: typedjs <file.js>");
+const isProd = args.includes('--prod');
+const fileArg = args.find(a => !a.startsWith('--'));
+
+if (!fileArg) {
+  console.error("Usage: typedjs <file.js> [--prod]");
   process.exit(1);
 }
 
-const filePath = path.resolve(args[0]);
+const filePath = path.resolve(fileArg);
 const source = fs.readFileSync(filePath, "utf-8");
 
 const { ast, typeRegistry } = parseCode(source);
 
-// Static analysis first
-staticAnalyze(typeRegistry, ast);
+// Static analysis (Always run it, but in prod it's CRITICAL)
+const staticErrors = staticAnalyze(typeRegistry, ast);
+if (!staticErrors && isProd) { // staticAnalyze returns false if errors found (wait, logic check)
+   // staticAnalyze returns boolean? Let's check. 
+   // It returns `errors.length === 0`. So true means OK.
+   console.error("Build failed due to static type errors.");
+   process.exit(1);
+}
 
-// Old minimal analyze
+// Old minimal analyze (deprecated but keeping for now)
 analyze(typeRegistry);
 
-const output = generate(ast, typeRegistry);
+const output = generate(ast, typeRegistry, isProd ? 'production' : 'development');
 
 const tmpFile = path.resolve("./typedjs_temp.js");
 fs.writeFileSync(tmpFile, output);
