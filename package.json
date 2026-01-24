@@ -1,15 +1,39 @@
 {
-    "name": "typed-js-ast",
+    "name": "typedjs",
     "version": "0.1.0",
+    "description": "Runtime type checking for JavaScript",
+    "main": "src/index.js",
     "type": "module",
+    "bin": {
+        "typedjs": "./src/cli.js"
+    },
+    "keywords": [
+        "typescript",
+        "javascript",
+        "types",
+        "runtime",
+        "validation",
+        "type-checking",
+        "type-system"
+    ],
+    "author": "Razin Shafayet <curiostymaster77@gmail.com>",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/RazinShafayet2007/typedjs.git"
+    },
+    "bugs": {
+        "url": "https://github.com/RazinShafayet2007/typedjs/issues"
+    },
+    "homepage": "https://github.com/RazinShafayet2007/typedjs#readme",
+    "engines": {
+        "node": ">=14.0.0"
+    },
     "dependencies": {
         "acorn": "^8.15.0",
         "acorn-typescript": "^1.4.13",
         "escodegen": "^2.1.0",
         "estree-walker": "^3.0.3"
-    },
-    "bin": {
-        "typedjs": "./src/cli.js"
     },
     "devDependencies": {
         "eslint": "^9.39.2"
