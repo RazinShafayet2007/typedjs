@@ -1,5 +1,5 @@
 {
-    "name": "typedjs",
+    "name": "@razinshafayet/typedjs",
     "version": "0.1.0",
     "description": "Runtime type checking for JavaScript",
     "main": "src/index.js",
