@@ -12,7 +12,7 @@ A lightweight, runtime-checkable type system for JavaScript. It brings the safet
 ## Installation
 
 ```bash
-npm install -g typedjs
+npm install -g @razinshafayet/typedjs
 ```
 
 ## Usage
