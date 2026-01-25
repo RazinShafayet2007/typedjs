@@ -1,1 +1,5 @@
+node_modules/.vscode/settings.json
+eslint.config.cjs
 node_modules/
+*.vsix
+*.log

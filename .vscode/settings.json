@@ -2,14 +2,14 @@
     "eslint.options": {
         "overrideConfig": {
             "languageOptions": {
-                "parser": "/home/razin/.antigravity/extensions/razinshafayet.typedjs-vscode-0.0.1/server/parser.js"
+                "parser": "/home/razin/.cursor/extensions/razinshafayet.typedjs-vscode-0.0.3-universal/server/parser.js"
             },
             "rules": {
                 "no-op": "error"
             }
         },
         "rulePaths": [
-            "/home/razin/.antigravity/extensions/razinshafayet.typedjs-vscode-0.0.1/server/rules"
+            "/home/razin/.cursor/extensions/razinshafayet.typedjs-vscode-0.0.3-universal/server/rules"
         ]
     }
 }
