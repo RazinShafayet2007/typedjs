@@ -11,7 +11,7 @@ const isProd = args.includes('--prod');
 const fileArg = args.find(a => !a.startsWith('--'));
 
 if (!fileArg) {
-  console.error("Usage: typedjs <file.js> [--prod]");
+  console.error("Usage: typedjs <file.tjs> [--prod]");
   process.exit(1);
 }
 
@@ -23,10 +23,10 @@ const { ast, typeRegistry } = parseCode(source);
 // Static analysis (Always run it, but in prod it's CRITICAL)
 const staticErrors = staticAnalyze(typeRegistry, ast);
 if (!staticErrors && isProd) { // staticAnalyze returns false if errors found (wait, logic check)
-   // staticAnalyze returns boolean? Let's check. 
-   // It returns `errors.length === 0`. So true means OK.
-   console.error("Build failed due to static type errors.");
-   process.exit(1);
+  // staticAnalyze returns boolean? Let's check. 
+  // It returns `errors.length === 0`. So true means OK.
+  console.error("Build failed due to static type errors.");
+  process.exit(1);
 }
 
 // Old minimal analyze (deprecated but keeping for now)

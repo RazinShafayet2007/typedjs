@@ -1,0 +1,24 @@
+// ===== Test: Literal Types =====
+// Tests for: string literals, number literals, boolean literals
+
+// String literal types
+type Direction = "north" | "south" | "east" | "west";
+let dir: Direction = "north";
+
+// Number literal types
+type DiceRoll = 1 | 2 | 3 | 4 | 5 | 6;
+let roll: DiceRoll = 3;
+
+// Boolean literal types
+type Yes = true;
+let yes: Yes = true;
+
+// Mixed literal union
+type Status = "pending" | "complete" | 0 | 1;
+let status: Status = "pending";
+
+console.log("[Test: Literals] All literal types parsed successfully");
+console.log("Direction:", dir);
+console.log("DiceRoll:", roll);
+console.log("Yes:", yes);
+console.log("Status:", status);

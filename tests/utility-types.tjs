@@ -1,0 +1,69 @@
+// ===== Test: Utility Types =====
+// Tests for: Partial, Required, Readonly, Pick, Omit, Record, etc.
+
+interface FullUser {
+  id: number;
+  name: string;
+  email: string;
+  age: number;
+}
+
+// Partial<T> - all properties optional
+let partialUser: Partial<FullUser> = {
+  name: "Alice"
+};
+
+// Required<T> - all properties required
+interface OptionalUser {
+  id?: number;
+  name?: string;
+}
+let requiredUser: Required<OptionalUser> = {
+  id: 1,
+  name: "Bob"
+};
+
+// Readonly<T>
+let readonlyUser: Readonly<FullUser> = {
+  id: 1,
+  name: "Charlie",
+  email: "c@example.com",
+  age: 30
+};
+
+// Pick<T, K>
+let pickedUser: Pick<FullUser, "name" | "email"> = {
+  name: "David",
+  email: "d@example.com"
+};
+
+// Omit<T, K>
+let omittedUser: Omit<FullUser, "age" | "email"> = {
+  id: 2,
+  name: "Eve"
+};
+
+// Record<K, T>
+type UsersByName = Record<string, FullUser>;
+let users: UsersByName = {
+  alice: { id: 1, name: "Alice", email: "a@test.com", age: 25 },
+  bob: { id: 2, name: "Bob", email: "b@test.com", age: 30 }
+};
+
+// NonNullable<T>
+type MaybeString = string | null | undefined;
+let notNull: NonNullable<MaybeString> = "definitely a string";
+
+// Extract and Exclude
+type NumOrStr = number | string | boolean;
+type OnlyNums: Extract<NumOrStr, number> = 42;
+type NoNums: Exclude<NumOrStr, number> = "hello";
+
+console.log("[Test: Utility Types] All utility types parsed successfully");
+console.log("Partial:", partialUser);
+console.log("Required:", requiredUser);
+console.log("Readonly:", readonlyUser);
+console.log("Pick:", pickedUser);
+console.log("Omit:", omittedUser);
+console.log("Record:", users);
+console.log("NonNullable:", notNull);

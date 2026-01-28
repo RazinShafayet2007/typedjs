@@ -1,0 +1,72 @@
+// ===== Test: Conditional and Mapped Types =====
+// Tests for: conditional types, mapped types, keyof, typeof, indexed access
+
+// keyof
+interface Person {
+  name: string;
+  age: number;
+  email: string;
+}
+
+type PersonKeys = keyof Person; // "name" | "age" | "email"
+let key: PersonKeys = "name";
+
+// typeof
+const config = {
+  host: "localhost",
+  port: 3000
+};
+type Config = typeof config;
+let myConfig: Config = { host: "0.0.0.0", port: 8080 };
+
+// Indexed access type
+type NameType = Person["name"]; // string
+type AgeType = Person["age"];  // number
+let personName: NameType = "Alice";
+
+// Conditional types
+type IsString<T> = T extends string ? true : false;
+type A = IsString<"hello">; // true
+type B = IsString<42>;     // false
+
+// Infer keyword
+type UnwrapPromise<T> = T extends Promise<infer U> ? U : T;
+type Unwrapped = UnwrapPromise<Promise<string>>; // string
+
+// Return type extraction
+type GetReturnType<T> = T extends (...args: any[]) => infer R ? R : never;
+function getString(): string { return "hello"; }
+type StrReturn = GetReturnType<typeof getString>; // string
+
+// Mapped types
+type Optional<T> = {
+  [K in keyof T]?: T[K];
+};
+
+type OptionalPerson = Optional<Person>;
+let optPerson: OptionalPerson = { name: "Bob" };
+
+// Mapped type with modifier
+type ReadonlyPerson = {
+  readonly [K in keyof Person]: Person[K];
+};
+
+// Key remapping (as clause)
+type Getters<T> = {
+  [K in keyof T as `get${Capitalize<string & K>}`]: () => T[K];
+};
+
+type PersonGetters = Getters<Person>;
+
+// Filtering with mapped types
+type OnlyStrings<T> = {
+  [K in keyof T as T[K] extends string ? K : never]: T[K];
+};
+
+type StringProps = OnlyStrings<Person>; // { name: string; email: string }
+
+console.log("[Test: Conditional/Mapped] All conditional and mapped types parsed successfully");
+console.log("PersonKey:", key);
+console.log("typeof config:", myConfig);
+console.log("Person['name']:", personName);
+console.log("Optional<Person>:", optPerson);

@@ -1,0 +1,40 @@
+// ===== Test: Arrays and Tuples =====
+// Tests for: arrays, readonly arrays, tuples, optional elements, rest elements, labeled elements
+
+// Basic arrays
+let nums: number[] = [1, 2, 3];
+let strs: Array<string> = ["a", "b", "c"];
+let readonlyNums: ReadonlyArray<number> = [1, 2, 3];
+
+// Basic tuple
+let pair: [number, string] = [42, "answer"];
+
+// Readonly tuple
+let readonlyPair: readonly [number, string] = [42, "answer"];
+
+// Labeled tuple elements
+type NamedTuple = [id: number, name: string];
+let named: NamedTuple = [1, "Alice"];
+
+// Optional tuple elements
+let optionalTuple: [number, string?] = [42];
+let optionalTuple2: [number, string?] = [42, "optional"];
+
+// Rest elements in tuple
+let restTuple: [number, ...string[]] = [1, "a", "b", "c"];
+
+// Complex tuple
+type ComplexTuple = [first: number, second: string, ...rest: boolean[]];
+let complex: ComplexTuple = [1, "hello", true, false, true];
+
+console.log("[Test: Arrays/Tuples] All array and tuple types parsed successfully");
+console.log("nums:", nums);
+console.log("strs:", strs);
+console.log("readonlyNums:", readonlyNums);
+console.log("pair:", pair);
+console.log("readonlyPair:", readonlyPair);
+console.log("named:", named);
+console.log("optionalTuple:", optionalTuple);
+console.log("optionalTuple2:", optionalTuple2);
+console.log("restTuple:", restTuple);
+console.log("complex:", complex);

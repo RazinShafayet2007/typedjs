@@ -1,0 +1,57 @@
+// ===== Test: Template Literal Types =====
+// Tests for: template literal types, with unions, with inference
+//
+// ⚠️ EXPECTED WARNINGS EXPLANATION:
+// Template literal types like `Hello, ${string}!` are parsed as:
+// { kind: 'templateLiteral', quasis: ['Hello, ', '!'], types: ['string'] }
+// At runtime, the value is just a plain string (e.g., "Hello, World!").
+// The __checkType__ function in generator.js doesn't have special handling
+// to validate strings against template literal patterns, so it falls through
+// to the object shape check which warns about missing 'kind' property.
+// See: src/generator/generator.js lines 465-498 (Object Shapes section)
+// TODO: Add regex-based template literal validation for full support.
+
+// Basic template literal type
+// WARNING: hi is a string at runtime, but type is { kind: 'templateLiteral', ... }
+type Greeting = `Hello, ${string}!`;
+let hi: Greeting = "Hello, World!";
+
+// With union types
+type Direction = "top" | "right" | "bottom" | "left";
+type Margin = `margin-${Direction}`;
+let margin: Margin = "margin-top";
+
+// Event handlers pattern
+type EventName = "click" | "focus" | "blur";
+type Handler = `on${Capitalize<EventName>}`;
+let handler: Handler = "onClick";
+
+// CSS-like values
+type Size = "sm" | "md" | "lg";
+type Color = "red" | "blue" | "green";
+type ClassName = `${Size}-${Color}`;
+let className: ClassName = "md-blue";
+
+// Numeric in template
+type Id = `user_${number}`;
+let userId: Id = "user_123";
+
+// Multiple interpolations
+type Route = `/${string}/${number}`;
+let route: Route = "/users/42";
+
+// CSS units
+type Unit = "px" | "em" | "rem" | "%";
+type CSSValue = `${number}${Unit}`;
+let width: CSSValue = "100px";
+let height: CSSValue = "50%";
+
+console.log("[Test: Template Literals] All template literal types parsed successfully");
+console.log("Greeting:", hi);
+console.log("Margin:", margin);
+console.log("Handler:", handler);
+console.log("ClassName:", className);
+console.log("UserId:", userId);
+console.log("Route:", route);
+console.log("Width:", width);
+console.log("Height:", height);

@@ -1,0 +1,69 @@
+// ===== Test: Object Types =====
+// Tests for: object shapes, optional properties, readonly, index signatures
+
+// Basic object shape
+interface User {
+  name: string;
+  age: number;
+}
+
+let user: User = {
+  name: "Alice",
+  age: 30
+};
+
+// Optional properties
+interface OptionalUser {
+  name: string;
+  email?: string;
+}
+
+let optUser: OptionalUser = {
+  name: "Bob"
+};
+
+// Readonly properties
+interface ReadonlyPoint {
+  readonly x: number;
+  readonly y: number;
+}
+
+let point: ReadonlyPoint = { x: 10, y: 20 };
+
+// Index signatures
+interface StringDict {
+  [key: string]: string;
+}
+
+let dict: StringDict = {
+  hello: "world",
+  foo: "bar"
+};
+
+interface NumberDict {
+  [index: number]: string;
+}
+
+let numDict: NumberDict = {
+  0: "first",
+  1: "second"
+};
+
+// Mixed: defined properties + index signature
+interface MixedDict {
+  id: number;
+  [key: string]: number | string;
+}
+
+let mixed: MixedDict = {
+  id: 1,
+  extra: "value"
+};
+
+console.log("[Test: Objects] All object types parsed successfully");
+console.log("User:", user);
+console.log("OptionalUser:", optUser);
+console.log("ReadonlyPoint:", point);
+console.log("StringDict:", dict);
+console.log("NumberDict:", numDict);
+console.log("MixedDict:", mixed);

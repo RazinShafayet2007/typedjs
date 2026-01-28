@@ -1,0 +1,58 @@
+// ===== Test: Function Types =====
+// Tests for: function types, generics, overloads, this parameter
+
+// Basic function type
+type Callback = (x: number) => string;
+let cb: Callback = (x) => "Value: " + x;
+
+// Generic function
+function identity<T>(x: T): T {
+  return x;
+}
+
+// Generic with constraint
+function getLength<T extends { length: number }>(x: T): number {
+  return x.length;
+}
+
+// Generic with default
+type Container<T = string> = { value: T };
+let defaultContainer: Container = { value: "hello" };
+let numberContainer: Container<number> = { value: 42 };
+
+// Multiple type parameters
+function pair<T, U>(first: T, second: U): [T, U] {
+  return [first, second];
+}
+
+// Function with rest parameters
+function sum(...nums: number[]): number {
+  return nums.reduce((a, b) => a + b, 0);
+}
+
+// This parameter type
+interface EventHandler {
+  element: HTMLElement;
+  handleClick(this: EventHandler, event: Event): void;
+}
+
+// Async function
+async function fetchData(): Promise<string> {
+  return "data";
+}
+
+// Optional parameters
+function greet(name: string, greeting?: string): string {
+  return (greeting || "Hello") + ", " + name;
+}
+
+console.log("[Test: Functions] All function types parsed successfully");
+console.log("Callback:", cb(42));
+console.log("Identity:", identity("test"));
+console.log("getLength:", getLength([1, 2, 3]));
+console.log("defaultContainer:", defaultContainer);
+console.log("numberContainer:", numberContainer);
+console.log("pair:", pair("a", 1));
+console.log("sum:", sum(1, 2, 3, 4, 5));
+console.log("greet:", greet("World"));
+console.log("greet with greeting:", greet("World", "Hi"));

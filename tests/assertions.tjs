@@ -1,0 +1,53 @@
+// ===== Test: Type Assertions =====
+// Tests for: as, satisfies, as const
+
+// Type assertion with 'as'
+let someValue: unknown = "hello";
+let strLength: number = (someValue as string).length;
+
+// Object type assertion
+interface User {
+  name: string;
+  age: number;
+}
+
+let data: unknown = { name: "Alice", age: 30 };
+let user = data as User;
+
+// satisfies operator
+const palette = {
+  red: [255, 0, 0],
+  green: "#00ff00",
+  blue: [0, 0, 255]
+} satisfies Record<string, string | number[]>;
+
+// as const
+const directions = ["north", "south", "east", "west"] as const;
+type Direction = typeof directions[number]; // "north" | "south" | "east" | "west"
+
+const point = { x: 10, y: 20 } as const;
+// point.x is type 10, not number
+
+// Nested as const
+const config = {
+  api: {
+    endpoint: "/api/v1",
+    timeout: 5000
+  },
+  features: ["auth", "logging"]
+} as const;
+
+// Non-null assertion (x!)
+function getValue(): string | null {
+  return "value";
+}
+let definitelyString: string = getValue()!;
+
+console.log("[Test: Assertions] All type assertions parsed successfully");
+console.log("String length:", strLength);
+console.log("User:", user);
+console.log("Palette:", palette);
+console.log("Directions:", directions);
+console.log("Point:", point);
+console.log("Config:", config);
+console.log("Non-null:", definitelyString);

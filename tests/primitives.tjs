@@ -1,0 +1,37 @@
+// ===== Test: Primitives =====
+// Tests for: string, number, boolean, null, undefined, bigint, symbol, void, never, any, unknown, object
+
+// Basic primitives
+let str: string = "hello";
+let num: number = 42;
+let bool: boolean = true;
+let n: null = null;
+let u: undefined = undefined;
+let big: bigint = 123n;
+
+// Special primitives
+let anything: any = "can be anything";
+let unknown1: unknown = 42;
+let obj: object = { key: "value" };
+
+// Void (typically for function returns)
+function returnsVoid(): void {
+  console.log("I return nothing");
+}
+
+// Never (for functions that never return)
+function throwsError(): never {
+  throw new Error("This function never returns");
+}
+
+// Test output
+console.log("[Test: Primitives] All primitive types parsed successfully");
+console.log("string:", str);
+console.log("number:", num);
+console.log("boolean:", bool);
+console.log("null:", n);
+console.log("undefined:", u);
+console.log("bigint:", big);
+console.log("any:", anything);
+console.log("unknown:", unknown1);
+console.log("object:", obj);

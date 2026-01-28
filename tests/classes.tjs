@@ -1,0 +1,24 @@
+// ===== Test: Classes (Simplified) =====
+// Tests for: basic class declarations (avoiding TS-specific property syntax that escodegen can't handle)
+
+// Basic class without typed properties (runtime works)
+class Animal {
+  constructor(name) {
+    this.name = name;
+  }
+  
+  speak(): string {
+    return this.name + " makes a sound";
+  }
+}
+
+// Function with class parameter
+function describeAnimal(animal: Animal): string {
+  return animal.speak();
+}
+
+// Creating instances
+let dog = new Animal("Dog");
+console.log("[Test: Classes] Basic class parsing works");
+console.log("Animal speak:", dog.speak());
+console.log("Described:", describeAnimal(dog));

@@ -1,0 +1,66 @@
+// ===== Test: Unions and Intersections =====
+// Tests for: union types, intersection types, discriminated unions
+
+// Basic union
+type StringOrNumber = string | number;
+let son: StringOrNumber = "hello";
+let son2: StringOrNumber = 42;
+
+// Union with null/undefined
+type MaybeString = string | null | undefined;
+let maybe: MaybeString = "value";
+let maybeNull: MaybeString = null;
+
+// Basic intersection
+interface HasName {
+  name: string;
+}
+
+interface HasAge {
+  age: number;
+}
+
+type Person = HasName & HasAge;
+let person: Person = {
+  name: "John",
+  age: 30
+};
+
+// Intersection with inline type
+type Employee = HasName & { employeeId: number };
+let employee: Employee = {
+  name: "Jane",
+  employeeId: 12345
+};
+
+// Discriminated union
+type Shape = 
+  | { kind: "circle"; radius: number }
+  | { kind: "square"; side: number }
+  | { kind: "rectangle"; width: number; height: number };
+
+let circle: Shape = { kind: "circle", radius: 5 };
+let square: Shape = { kind: "square", side: 10 };
+let rect: Shape = { kind: "rectangle", width: 4, height: 6 };
+
+// Function to demonstrate discriminated union handling
+function getArea(shape: Shape): number {
+  if (shape.kind === "circle") {
+    return Math.PI * shape.radius * shape.radius;
+  } else if (shape.kind === "square") {
+    return shape.side * shape.side;
+  } else {
+    return shape.width * shape.height;
+  }
+}
+
+console.log("[Test: Unions/Intersections] All union and intersection types parsed successfully");
+console.log("StringOrNumber (string):", son);
+console.log("StringOrNumber (number):", son2);
+console.log("MaybeString:", maybe);
+console.log("MaybeNull:", maybeNull);
+console.log("Person (intersection):", person);
+console.log("Employee:", employee);
+console.log("Circle area:", getArea(circle));
+console.log("Square area:", getArea(square));
+console.log("Rectangle area:", getArea(rect));

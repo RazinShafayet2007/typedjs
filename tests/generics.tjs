@@ -1,0 +1,63 @@
+// ===== Test: Generics =====
+// Tests for: generic types, constraints, defaults, multiple params (without classes)
+//
+// ⚠️ EXPECTED WARNINGS EXPLANATION:
+// Generic types like Box<T> are parsed as { kind: 'generic', name: 'Box', typeArgs: [...] }
+// At runtime, the type checker in generator.js (__checkType__ function, lines ~465-498)
+// treats this as an object shape and looks for 'kind', 'name', 'typeArgs' properties
+// on the actual value (e.g., { value: "hello" }), which don't exist.
+// This mimics TypeScript's type erasure - generics exist only at compile time.
+// See: src/generator/generator.js lines 465-498 (Object Shapes section)
+
+// Basic generic type
+// WARNING: stringBox will warn about missing 'kind', 'name', 'typeArgs'
+// because Box<string> becomes { kind: 'generic', name: 'Box', typeArgs: ['string'] }
+type Box<T> = { value: T };
+let stringBox: Box<string> = { value: "hello" };
+let numberBox: Box<number> = { value: 42 };
+
+// Generic with constraint (using type alias)
+type Lengthwise<T extends { length: number }> = {
+  item: T;
+  length: number;
+};
+
+let arrayLength: Lengthwise<number[]> = {
+  item: [1, 2, 3],
+  length: 3
+};
+
+// Generic with default
+// WARNING: Maybe<T> = T | null | undefined becomes a union type at runtime
+// The runtime checker sees 'union' kind and validates correctly
+type Maybe<T = unknown> = T | null | undefined;
+let maybeNumber: Maybe<number> = 42;
+let maybeNull: Maybe<string> = null;
+
+// Multiple type parameters
+type Pair<T, U> = [T, U];
+let myPair: Pair<string, number> = ["age", 30];
+
+// Nested generics
+type NestedBox<T> = Box<Box<T>>;
+let nested: NestedBox<string> = { value: { value: "deep" } };
+
+// Generic function
+function identity<T>(x: T): T {
+  return x;
+}
+
+function getFirst<T>(arr: T[]): T {
+  return arr[0];
+}
+
+console.log("[Test: Generics] All generic types parsed successfully");
+console.log("stringBox:", stringBox);
+console.log("numberBox:", numberBox);
+console.log("arrayLength:", arrayLength);
+console.log("maybeNumber:", maybeNumber);
+console.log("maybeNull:", maybeNull);
+console.log("myPair:", myPair);
+console.log("nested:", nested);
+console.log("identity:", identity("test"));
+console.log("getFirst:", getFirst([1, 2, 3]));
