@@ -3,7 +3,7 @@
  * Tests the TypedJS parser's ability to parse type annotations
  */
 
-const parser = require('../src/parser');
+const parser = require('../src/parser/parser');
 
 describe('Parser - Primitives', () => {
   test('should parse string type annotation', () => {

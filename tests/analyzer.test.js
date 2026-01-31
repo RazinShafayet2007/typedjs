@@ -3,8 +3,8 @@
  * Tests the TypedJS analyzer's ability to catch type errors
  */
 
-const analyzer = require('../src/analyzer');
-const parser = require('../src/parser');
+const analyzer = require('../src/analyzer/analyzer');
+const parser = require('../src/parser/parser');
 
 describe('Analyzer - Type Mismatches', () => {
   test('should detect string assigned to number', () => {

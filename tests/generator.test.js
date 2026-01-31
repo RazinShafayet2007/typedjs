@@ -3,8 +3,8 @@
  * Tests the TypedJS code generator for both dev and prod modes
  */
 
-const generator = require('../src/generator');
-const parser = require('../src/parser');
+const generator = require('../src/generator/generator');
+const parser = require('../src/parser/parser');
 
 describe('Generator - Dev Mode', () => {
   test('should inject runtime checks for primitives', () => {
