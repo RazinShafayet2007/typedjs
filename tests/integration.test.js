@@ -3,9 +3,9 @@
  * End-to-end tests for the complete TypedJS workflow
  */
 
-const parser = require('../src/parser/parser');
-const analyzer = require('../src/analyzer/analyzer');
-const generator = require('../src/generator/generator');
+import parser from '../src/parser/parser.js';
+import analyzer from '../src/analyzer/analyzer.js';
+import generator from '../src/generator/generator.js';
 
 describe('Integration - Full Workflow', () => {
   test('parse -> analyze -> generate -> execute', () => {
