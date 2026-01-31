@@ -9,8 +9,8 @@ import { parseCode } from '../src/parser/parser.js';
 describe('Generator - Dev Mode', () => {
   test('should inject runtime checks for primitives', () => {
     const code = 'let age: number = 25;';
-    const ast = parseCode(code);
-    const output = generate(ast, { mode: 'dev' });
+    const { ast, typeRegistry } = parseCode(code);
+    const output = generate(ast, typeRegistry, 'development');
     
     expect(output).toContain('__checkType__');
     expect(output).toContain('number');
@@ -18,8 +18,8 @@ describe('Generator - Dev Mode', () => {
 
   test('should inject checks for function parameters', () => {
     const code = 'function add(a: number, b: number): number { return a + b; }';
-    const ast = parseCode(code);
-    const output = generate(ast, { mode: 'dev' });
+    const { ast, typeRegistry } = parseCode(code);
+    const output = generate(ast, typeRegistry, 'development');
     
     expect(output).toContain('__checkType__');
   });
@@ -28,8 +28,8 @@ describe('Generator - Dev Mode', () => {
 describe('Generator - Prod Mode', () => {
   test('should strip all type annotations', () => {
     const code = 'let age: number = 25;';
-    const ast = parseCode(code);
-    const output = generate(ast, { mode: 'prod' });
+    const { ast, typeRegistry } = parseCode(code);
+    const output = generate(ast, typeRegistry, 'production');
     
     expect(output).not.toContain('__checkType__');
     expect(output).not.toContain(': number');
@@ -44,8 +44,8 @@ describe('Generator - Prod Mode', () => {
       }
       let user: User = { id: 1, name: "John" };
     `;
-    const ast = parseCode(code);
-    const output = generate(ast, { mode: 'prod' });
+    const { ast, typeRegistry } = parseCode(code);
+    const output = generate(ast, typeRegistry, 'production');
     
     expect(output).not.toContain('interface');
     expect(output).toContain('let user = {');
@@ -53,8 +53,8 @@ describe('Generator - Prod Mode', () => {
 
   test('should strip function type annotations', () => {
     const code = 'function add(a: number, b: number): number { return a + b; }';
-    const ast = parseCode(code);
-    const output = generate(ast, { mode: 'prod' });
+    const { ast, typeRegistry } = parseCode(code);
+    const output = generate(ast, typeRegistry, 'production');
     
     expect(output).not.toContain(': number');
     expect(output).toContain('function add(a, b)');
@@ -67,8 +67,8 @@ describe('Generator - Prod Mode', () => {
       }
       let result: number = add(5, 10);
     `;
-    const ast = parseCode(code);
-    const output = generate(ast, { mode: 'prod' });
+    const { ast, typeRegistry } = parseCode(code);
+    const output = generate(ast, typeRegistry, 'production');
     
     expect(output).not.toContain(': number');
     expect(() => eval(output)).not.toThrow();
@@ -82,9 +82,9 @@ describe('Generator - Performance', () => {
         return a + b;
       }
     `;
-    const ast = parseCode(code);
-    const devOutput = generate(ast, { mode: 'dev' });
-    const prodOutput = generate(ast, { mode: 'prod' });
+    const { ast, typeRegistry } = parseCode(code);
+    const devOutput = generate(ast, typeRegistry, 'development');
+    const prodOutput = generate(ast, typeRegistry, 'production');
     
     expect(prodOutput.length).toBeLessThan(devOutput.length);
   });

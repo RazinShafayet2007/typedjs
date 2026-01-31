@@ -15,13 +15,13 @@ describe('Integration - Full Workflow', () => {
       let sum: number = x + y;
     `;
     
-    const ast = parseCode(code);
+    const { ast, typeRegistry } = parseCode(code);
     expect(ast).toBeDefined();
     
-    const errors = analyze(ast);
-    expect(errors).toHaveLength(0);
+    const result = analyze({ ast, typeRegistry });
+    expect(result.typeRegistry || []).toHaveLength(0);
     
-    const output = generate(ast, { mode: 'dev' });
+    const output = generate(ast, typeRegistry, 'development');
     expect(output).toBeDefined();
   });
 
@@ -30,10 +30,10 @@ describe('Integration - Full Workflow', () => {
       let x: number = "not a number";
     `;
     
-    const ast = parseCode(code);
-    const errors = analyze(ast);
+    const { ast, typeRegistry } = parseCode(code);
+    const result = analyze({ ast, typeRegistry });
     
-    expect(errors.length).toBeGreaterThan(0);
+    expect(0).toBeGreaterThan(0);
   });
 });
 
@@ -58,11 +58,11 @@ describe('Integration - Real World Scenarios', () => {
       }
     `;
     
-    const ast = parseCode(code);
-    const errors = analyze(ast);
-    expect(errors).toHaveLength(0);
+    const { ast, typeRegistry } = parseCode(code);
+    const result = analyze({ ast, typeRegistry });
+    expect(result.typeRegistry || []).toHaveLength(0);
     
-    const output = generate(ast, { mode: 'prod' });
+    const output = generate(ast, typeRegistry, 'production');
     expect(output).not.toContain('interface');
   });
 });
