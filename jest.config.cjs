@@ -9,5 +9,6 @@ module.exports = {
     '**/tests/**/*.test.js'
   ],
   setupFilesAfterEnv: ['<rootDir>/tests/setup.js'],
-  verbose: true
+  verbose: true,
+  transform: {}
 };
