@@ -3,12 +3,12 @@
  * Tests the TypedJS parser's ability to parse type annotations
  */
 
-import { parse } from '../src/parser/parser.js';
+import { parseCode } from '../src/parser/parser.js';
 
 describe('Parser - Primitives', () => {
   test('should parse string type annotation', () => {
     const code = 'let name: string = "John";';
-    const ast = parse(code);
+    const ast = parseCode(code);
     
     expect(ast).toBeDefined();
     expect(ast.type).toBe('Program');
@@ -19,7 +19,7 @@ describe('Parser - Primitives', () => {
 
   test('should parse number type annotation', () => {
     const code = 'let age: number = 25;';
-    const ast = parse(code);
+    const ast = parseCode(code);
     
     const declaration = ast.body[0].declarations[0];
     expect(declaration.id.typeAnnotation.typeAnnotation.type).toBe('TSNumberKeyword');
@@ -27,7 +27,7 @@ describe('Parser - Primitives', () => {
 
   test('should parse boolean type annotation', () => {
     const code = 'let isActive: boolean = true;';
-    const ast = parse(code);
+    const ast = parseCode(code);
     
     const declaration = ast.body[0].declarations[0];
     expect(declaration.id.typeAnnotation.typeAnnotation.type).toBe('TSBooleanKeyword');
@@ -35,7 +35,7 @@ describe('Parser - Primitives', () => {
 
   test('should parse array type annotation', () => {
     const code = 'let scores: Array<number> = [1, 2, 3];';
-    const ast = parse(code);
+    const ast = parseCode(code);
     
     const declaration = ast.body[0].declarations[0];
     expect(declaration.id.typeAnnotation.typeAnnotation.type).toBe('TSTypeReference');
@@ -43,7 +43,7 @@ describe('Parser - Primitives', () => {
 
   test('should parse tuple type annotation', () => {
     const code = 'let point: [number, number] = [10, 20];';
-    const ast = parse(code);
+    const ast = parseCode(code);
     
     const declaration = ast.body[0].declarations[0];
     expect(declaration.id.typeAnnotation.typeAnnotation.type).toBe('TSTupleType');
@@ -53,7 +53,7 @@ describe('Parser - Primitives', () => {
 describe('Parser - Union Types', () => {
   test('should parse simple union type', () => {
     const code = 'let id: string | number = 123;';
-    const ast = parse(code);
+    const ast = parseCode(code);
     
     const declaration = ast.body[0].declarations[0];
     expect(declaration.id.typeAnnotation.typeAnnotation.type).toBe('TSUnionType');
@@ -68,7 +68,7 @@ describe('Parser - Interfaces', () => {
         name: string;
       }
     `;
-    const ast = parse(code);
+    const ast = parseCode(code);
     
     expect(ast.body[0].type).toBe('TSInterfaceDeclaration');
     expect(ast.body[0].id.name).toBe('User');
@@ -81,7 +81,7 @@ describe('Parser - Interfaces', () => {
         email?: string;
       }
     `;
-    const ast = parse(code);
+    const ast = parseCode(code);
     
     const emailProperty = ast.body[0].body.body[1];
     expect(emailProperty.optional).toBe(true);
@@ -91,7 +91,7 @@ describe('Parser - Interfaces', () => {
 describe('Parser - Functions', () => {
   test('should parse function with typed parameters', () => {
     const code = 'function add(a: number, b: number) { return a + b; }';
-    const ast = parse(code);
+    const ast = parseCode(code);
     
     const func = ast.body[0];
     expect(func.params[0].typeAnnotation).toBeDefined();
@@ -100,7 +100,7 @@ describe('Parser - Functions', () => {
 
   test('should parse function with return type', () => {
     const code = 'function add(a: number, b: number): number { return a + b; }';
-    const ast = parse(code);
+    const ast = parseCode(code);
     
     const func = ast.body[0];
     expect(func.returnType).toBeDefined();

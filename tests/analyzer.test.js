@@ -3,13 +3,13 @@
  * Tests the TypedJS analyzer's ability to catch type errors
  */
 
-import { analyze } from '../src/analyzer/analyzer.js';
-import { parse } from '../src/parser/parser.js';
+import { staticAnalyze, analyze } from '../src/analyzer/analyzer.js';
+import { parseCode } from '../src/parser/parser.js';
 
 describe('Analyzer - Type Mismatches', () => {
   test('should detect string assigned to number', () => {
     const code = 'let age: number = "25";';
-    const ast = parse(code);
+    const ast = parseCode(code);
     const errors = analyze(ast);
     
     expect(errors).toHaveLength(1);
@@ -18,7 +18,7 @@ describe('Analyzer - Type Mismatches', () => {
 
   test('should allow correct type assignment', () => {
     const code = 'let age: number = 25;';
-    const ast = parse(code);
+    const ast = parseCode(code);
     const errors = analyze(ast);
     
     expect(errors).toHaveLength(0);
@@ -28,7 +28,7 @@ describe('Analyzer - Type Mismatches', () => {
 describe('Analyzer - Array Type Checking', () => {
   test('should detect wrong array element type', () => {
     const code = 'let scores: Array<number> = [1, 2, "3"];';
-    const ast = parse(code);
+    const ast = parseCode(code);
     const errors = analyze(ast);
     
     expect(errors.length).toBeGreaterThan(0);
@@ -36,7 +36,7 @@ describe('Analyzer - Array Type Checking', () => {
 
   test('should allow correct array type', () => {
     const code = 'let scores: Array<number> = [1, 2, 3];';
-    const ast = parse(code);
+    const ast = parseCode(code);
     const errors = analyze(ast);
     
     expect(errors).toHaveLength(0);
@@ -52,7 +52,7 @@ describe('Analyzer - Interface Type Checking', () => {
       }
       let user: User = { id: 1 };
     `;
-    const ast = parse(code);
+    const ast = parseCode(code);
     const errors = analyze(ast);
     
     expect(errors.length).toBeGreaterThan(0);
@@ -66,7 +66,7 @@ describe('Analyzer - Interface Type Checking', () => {
       }
       let user: User = { id: 1, name: "John" };
     `;
-    const ast = parse(code);
+    const ast = parseCode(code);
     const errors = analyze(ast);
     
     expect(errors).toHaveLength(0);
@@ -81,7 +81,7 @@ describe('Analyzer - Function Type Checking', () => {
       }
       add("5", 10);
     `;
-    const ast = parse(code);
+    const ast = parseCode(code);
     const errors = analyze(ast);
     
     expect(errors.length).toBeGreaterThan(0);
@@ -94,7 +94,7 @@ describe('Analyzer - Function Type Checking', () => {
       }
       add(5, 10);
     `;
-    const ast = parse(code);
+    const ast = parseCode(code);
     const errors = analyze(ast);
     
     expect(errors).toHaveLength(0);

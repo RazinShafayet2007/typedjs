@@ -3,8 +3,8 @@
  * End-to-end tests for the complete TypedJS workflow
  */
 
-import { parse } from '../src/parser/parser.js';
-import { analyze } from '../src/analyzer/analyzer.js';
+import { parseCode } from '../src/parser/parser.js';
+import { staticAnalyze, analyze } from '../src/analyzer/analyzer.js';
 import { generate } from '../src/generator/generator.js';
 
 describe('Integration - Full Workflow', () => {
@@ -15,7 +15,7 @@ describe('Integration - Full Workflow', () => {
       let sum: number = x + y;
     `;
     
-    const ast = parse(code);
+    const ast = parseCode(code);
     expect(ast).toBeDefined();
     
     const errors = analyze(ast);
@@ -30,7 +30,7 @@ describe('Integration - Full Workflow', () => {
       let x: number = "not a number";
     `;
     
-    const ast = parse(code);
+    const ast = parseCode(code);
     const errors = analyze(ast);
     
     expect(errors.length).toBeGreaterThan(0);
@@ -58,7 +58,7 @@ describe('Integration - Real World Scenarios', () => {
       }
     `;
     
-    const ast = parse(code);
+    const ast = parseCode(code);
     const errors = analyze(ast);
     expect(errors).toHaveLength(0);
     
