@@ -1,0 +1,5 @@
+// Invalid TypedJS code - Type mismatches
+let age: number = "25"; // ERROR
+let name: string = 123; // ERROR
+
+console.log("This should fail type checking");

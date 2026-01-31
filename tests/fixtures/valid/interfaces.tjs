@@ -1,0 +1,13 @@
+// Valid TypedJS code - Interfaces
+interface User {
+  id: number;
+  name: string;
+  email?: string;
+}
+
+let user: User = {
+  id: 1,
+  name: "John Doe"
+};
+
+console.log("Interface validation passed");

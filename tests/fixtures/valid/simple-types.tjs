@@ -1,0 +1,6 @@
+// Valid TypedJS code - Simple types
+let name: string = "John";
+let age: number = 25;
+let isActive: boolean = true;
+
+console.log("All simple types valid");

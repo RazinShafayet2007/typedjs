@@ -1,0 +1,12 @@
+// Invalid TypedJS code - Interface errors
+interface User {
+  id: number;
+  name: string;
+}
+
+// ERROR: Missing required property 'name'
+let user1: User = {
+  id: 1
+};
+
+console.log("This should fail interface validation");
