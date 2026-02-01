@@ -516,10 +516,5 @@ function __checkReturnType__(value, typeJson) {
 // ===== End TypedJS Runtime Helpers =====
 `;
 
-  const varChecks = typeRegistry
-    .filter(e => e.kind === 'variable')
-    .map(({ name, type }) => `__checkType__('${name}', ${name}, ${JSON.stringify(JSON.stringify(type))});`)
-    .join('\n');
-
-  return `${helpers}\n${enumDefs}\n${transformed}\n${varChecks}`;
+  return `${helpers}\n${enumDefs}\n${transformed}`;
 }
