@@ -3,34 +3,42 @@
     "name": "Simple Benchmark",
     "typedjs": {
       "dev": {
-        "time": "154ms",
+        "time": "211ms",
         "success": true
       },
       "prod": {
-        "time": "144ms",
+        "time": "134ms",
         "success": true
       }
     },
     "typescript": {
-      "success": false,
-      "error": "Command failed: npx tsc simple.ts --target ES2020 --module ES2020"
+      "compileTime": "7913ms",
+      "execTime": "46ms",
+      "totalTime": "7959ms",
+      "tsSize": "777 bytes",
+      "jsSize": "556 bytes",
+      "success": true
     }
   },
   {
     "name": "Complex Benchmark",
     "typedjs": {
       "dev": {
-        "time": "378ms",
+        "time": "375ms",
         "success": true
       },
       "prod": {
-        "time": "144ms",
+        "time": "149ms",
         "success": true
       }
     },
     "typescript": {
-      "success": false,
-      "error": "Command failed: npx tsc complex.ts --target ES2020 --module ES2020"
+      "compileTime": "7613ms",
+      "execTime": "52ms",
+      "totalTime": "7665ms",
+      "tsSize": "2222 bytes",
+      "jsSize": "1629 bytes",
+      "success": true
     }
   }
 ]

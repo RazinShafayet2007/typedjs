@@ -24,6 +24,7 @@ function benchmark(name, tjsFile, tsFile) {
   try {
     console.log('⏱️  TypedJS (Dev Mode)...');
     const start = Date.now();
+    // Assuming cli.js is in ../src/cli.js relative to benchmarks folder
     const output = execSync(`node ../src/cli.js ${tjsFile}`, { 
       encoding: 'utf-8',
       cwd: __dirname 
@@ -67,9 +68,11 @@ function benchmark(name, tjsFile, tsFile) {
     
     // Compile
     const compileStart = Date.now();
-    execSync(`npx tsc ${tsFile} --target ES2020 --module ES2020`, { 
+    // ADDED: --lib ES2020,DOM to fix console.log errors
+    // REMOVED: stdio: 'ignore' so we can see errors if they happen
+    execSync(`npx tsc ${tsFile} --target ES2020 --module ES2020 --moduleResolution node --esModuleInterop --lib ES2020,DOM`, { 
       cwd: __dirname,
-      stdio: 'ignore'
+      stdio: 'pipe' // Capture output to display on error
     });
     const compileTime = Date.now() - compileStart;
     
@@ -97,10 +100,14 @@ function benchmark(name, tjsFile, tsFile) {
     console.log(`   ✅ Compiled in ${compileTime}ms, executed in ${execTime}ms (total: ${totalTime}ms)`);
     
     // Cleanup
-    fs.unlinkSync(path.join(__dirname, jsFile));
+    if (fs.existsSync(path.join(__dirname, jsFile))) {
+        fs.unlinkSync(path.join(__dirname, jsFile));
+    }
   } catch (err) {
     results.typescript = { success: false, error: err.message };
-    console.log(`   ❌ Failed: ${err.message}`);
+    // Log the actual error output from stdout/stderr if available
+    const errorDetails = err.stdout ? err.stdout.toString() : (err.stderr ? err.stderr.toString() : err.message);
+    console.log(`   ❌ Failed: ${errorDetails.trim()}`);
   }
   
   return results;
@@ -119,14 +126,16 @@ console.log('='.repeat(60));
 
 results.forEach(result => {
   console.log(`\n${result.name}:`);
-  if (result.typedjs.dev.success) {
+  if (result.typedjs && result.typedjs.dev && result.typedjs.dev.success) {
     console.log(`  TypedJS Dev:  ${result.typedjs.dev.time}`);
   }
-  if (result.typedjs.prod.success) {
+  if (result.typedjs && result.typedjs.prod && result.typedjs.prod.success) {
     console.log(`  TypedJS Prod: ${result.typedjs.prod.time}`);
   }
-  if (result.typescript.success) {
+  if (result.typescript && result.typescript.success) {
     console.log(`  TypeScript:   ${result.typescript.totalTime} (compile: ${result.typescript.compileTime}, exec: ${result.typescript.execTime})`);
+  } else if (result.typescript && !result.typescript.success) {
+     console.log(`  TypeScript:   Failed`);
   }
 });
 
