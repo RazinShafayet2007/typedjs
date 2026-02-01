@@ -47,6 +47,6 @@
     "test:coverage": "jest --coverage",
     "bench": "node benchmarks/run.js",
     "bench:chart": "node benchmarks/make-chart.js",
-    "bench:all": "npm run bench && npm run bench:chart"
+    "bench:full": "npm run bench && npm run bench:chart"
   }
 }

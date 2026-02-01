@@ -4,3 +4,4 @@ eslint.config.cjs
 node_modules/
 *.vsix
 *.log
+benchmark_report.html
