@@ -29,3 +29,5 @@ let total: number = calculateTotal(prices);
 
 console.log("Created", users.length, "users");
 console.log("Total price:", total);
+
+export {};

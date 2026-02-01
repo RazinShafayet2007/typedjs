@@ -18,3 +18,4 @@ let prices = [10, 20, 30, 40, 50];
 let total = calculateTotal(prices);
 console.log("Created", users.length, "users");
 console.log("Total price:", total);
+export {};

@@ -57,3 +57,4 @@ for (let i = 0; i < customers.length; i++) {
 }
 console.log("Processed", customers.length, "customers");
 console.log("Grand total:", grandTotal);
+export {};

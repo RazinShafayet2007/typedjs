@@ -7,7 +7,7 @@
         "error": "Command failed: node ../src/cli.js simple.tjs\nfile:///home/razin/typed-js/benchmarks/typedjs_temp.js:368\n__checkType__('i', i, \"\\\"number\\\"\");\n                   ^\n\nReferenceError: i is not defined\n    at file:///home/razin/typed-js/benchmarks/typedjs_temp.js:368:20\n    at ModuleJob.run (node:internal/modules/esm/module_job:329:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:644:26)\n    at async file:///home/razin/typed-js/src/cli.js:40:1\n\nNode.js v22.17.1\n"
       },
       "prod": {
-        "time": "135ms",
+        "time": "163ms",
         "success": true
       }
     },
@@ -24,7 +24,7 @@
         "error": "Command failed: node ../src/cli.js complex.tjs\nfile:///home/razin/typed-js/benchmarks/typedjs_temp.js:400\n__checkType__('total', total, \"\\\"number\\\"\");\n                       ^\n\nReferenceError: total is not defined\n    at file:///home/razin/typed-js/benchmarks/typedjs_temp.js:400:24\n    at ModuleJob.run (node:internal/modules/esm/module_job:329:25)\n    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:644:26)\n    at async file:///home/razin/typed-js/src/cli.js:40:1\n\nNode.js v22.17.1\n"
       },
       "prod": {
-        "time": "161ms",
+        "time": "172ms",
         "success": true
       }
     },
