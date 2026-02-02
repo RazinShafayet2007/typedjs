@@ -3,18 +3,18 @@
     "name": "Simple Benchmark",
     "typedjs": {
       "dev": {
-        "time": "510ms",
+        "time": "200ms",
         "success": true
       },
       "prod": {
-        "time": "161ms",
+        "time": "131ms",
         "success": true
       }
     },
     "typescript": {
-      "compileTime": "11673ms",
-      "execTime": "59ms",
-      "totalTime": "11732ms",
+      "compileTime": "7565ms",
+      "execTime": "43ms",
+      "totalTime": "7608ms",
       "tsSize": "777 bytes",
       "jsSize": "556 bytes",
       "success": true
@@ -24,18 +24,18 @@
     "name": "Complex Benchmark",
     "typedjs": {
       "dev": {
-        "time": "682ms",
+        "time": "379ms",
         "success": true
       },
       "prod": {
-        "time": "200ms",
+        "time": "160ms",
         "success": true
       }
     },
     "typescript": {
-      "compileTime": "10420ms",
-      "execTime": "54ms",
-      "totalTime": "10474ms",
+      "compileTime": "7571ms",
+      "execTime": "48ms",
+      "totalTime": "7619ms",
       "tsSize": "2222 bytes",
       "jsSize": "1629 bytes",
       "success": true
