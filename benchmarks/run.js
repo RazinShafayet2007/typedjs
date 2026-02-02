@@ -118,6 +118,7 @@ const results = [];
 
 results.push(benchmark('Simple Benchmark', 'simple.tjs', 'simple.ts'));
 results.push(benchmark('Complex Benchmark', 'complex.tjs', 'complex.ts'));
+results.push(benchmark('Loop Benchmark (Torture Test)', 'loop.tjs', 'loop.ts'));
 
 // Summary
 console.log('\n' + '='.repeat(60));
