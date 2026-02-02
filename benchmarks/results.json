@@ -3,18 +3,18 @@
     "name": "Simple Benchmark",
     "typedjs": {
       "dev": {
-        "time": "200ms",
+        "time": "159ms",
         "success": true
       },
       "prod": {
-        "time": "131ms",
+        "time": "184ms",
         "success": true
       }
     },
     "typescript": {
-      "compileTime": "7565ms",
-      "execTime": "43ms",
-      "totalTime": "7608ms",
+      "compileTime": "7710ms",
+      "execTime": "41ms",
+      "totalTime": "7751ms",
       "tsSize": "777 bytes",
       "jsSize": "556 bytes",
       "success": true
@@ -24,20 +24,41 @@
     "name": "Complex Benchmark",
     "typedjs": {
       "dev": {
-        "time": "379ms",
+        "time": "467ms",
         "success": true
       },
       "prod": {
-        "time": "160ms",
+        "time": "180ms",
         "success": true
       }
     },
     "typescript": {
-      "compileTime": "7571ms",
-      "execTime": "48ms",
-      "totalTime": "7619ms",
+      "compileTime": "7433ms",
+      "execTime": "49ms",
+      "totalTime": "7482ms",
       "tsSize": "2222 bytes",
       "jsSize": "1629 bytes",
+      "success": true
+    }
+  },
+  {
+    "name": "Loop Benchmark (Torture Test)",
+    "typedjs": {
+      "dev": {
+        "time": "664ms",
+        "success": true
+      },
+      "prod": {
+        "time": "126ms",
+        "success": true
+      }
+    },
+    "typescript": {
+      "compileTime": "7680ms",
+      "execTime": "40ms",
+      "totalTime": "7720ms",
+      "tsSize": "221 bytes",
+      "jsSize": "183 bytes",
       "success": true
     }
   }
