@@ -15,6 +15,10 @@ if (!fileArg) {
   process.exit(1);
 }
 
+const isBench = args.includes('--bench-meta');
+
+let compileStart = performance.now();
+
 const filePath = path.resolve(fileArg);
 const source = fs.readFileSync(filePath, "utf-8");
 
@@ -33,10 +37,18 @@ if (!staticErrors && isProd) { // staticAnalyze returns false if errors found (w
 analyze(typeRegistry);
 
 const output = generate(ast, typeRegistry, isProd ? 'production' : 'development');
+const compileTime = performance.now() - compileStart;
 
 const tmpFile = path.resolve("./typedjs_temp.js");
 fs.writeFileSync(tmpFile, output);
 
-await import(tmpFile);
-
-fs.unlinkSync(tmpFile);
+let execStart = performance.now();
+try {
+  await import(tmpFile);
+} finally {
+  if (isBench) {
+    const execTime = performance.now() - execStart;
+    console.log(`__BENCH__${JSON.stringify({ compileTime, execTime })}`);
+  }
+  fs.unlinkSync(tmpFile);
+}

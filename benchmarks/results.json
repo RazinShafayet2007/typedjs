@@ -3,18 +3,22 @@
     "name": "Simple Benchmark",
     "typedjs": {
       "dev": {
-        "time": "159ms",
+        "compileTime": "29.77ms",
+        "execTime": "8.79ms",
+        "totalTime": "38.56ms",
         "success": true
       },
       "prod": {
-        "time": "184ms",
+        "compileTime": "28.88ms",
+        "execTime": "8.30ms",
+        "totalTime": "37.18ms",
         "success": true
       }
     },
     "typescript": {
-      "compileTime": "7710ms",
-      "execTime": "41ms",
-      "totalTime": "7751ms",
+      "compileTime": "7474ms",
+      "execTime": "40ms",
+      "totalTime": "7514ms",
       "tsSize": "777 bytes",
       "jsSize": "556 bytes",
       "success": true
@@ -24,18 +28,22 @@
     "name": "Complex Benchmark",
     "typedjs": {
       "dev": {
-        "time": "467ms",
+        "compileTime": "41.91ms",
+        "execTime": "99.21ms",
+        "totalTime": "141.12ms",
         "success": true
       },
       "prod": {
-        "time": "180ms",
+        "compileTime": "43.99ms",
+        "execTime": "91.41ms",
+        "totalTime": "135.39ms",
         "success": true
       }
     },
     "typescript": {
-      "compileTime": "7433ms",
-      "execTime": "49ms",
-      "totalTime": "7482ms",
+      "compileTime": "7660ms",
+      "execTime": "47ms",
+      "totalTime": "7707ms",
       "tsSize": "2222 bytes",
       "jsSize": "1629 bytes",
       "success": true
@@ -45,18 +53,22 @@
     "name": "Loop Benchmark (Torture Test)",
     "typedjs": {
       "dev": {
-        "time": "664ms",
+        "compileTime": "21.96ms",
+        "execTime": "95.52ms",
+        "totalTime": "117.48ms",
         "success": true
       },
       "prod": {
-        "time": "126ms",
+        "compileTime": "21.87ms",
+        "execTime": "97.24ms",
+        "totalTime": "119.11ms",
         "success": true
       }
     },
     "typescript": {
-      "compileTime": "7680ms",
-      "execTime": "40ms",
-      "totalTime": "7720ms",
+      "compileTime": "7626ms",
+      "execTime": "43ms",
+      "totalTime": "7669ms",
       "tsSize": "221 bytes",
       "jsSize": "183 bytes",
       "success": true

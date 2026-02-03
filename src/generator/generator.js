@@ -262,15 +262,21 @@ function __handleCheckError__(name, expected, actual) {
   }
 }
 
+const __TPJS_TYPE_CACHE__ = new Map();
+
 function __checkType__(name, value, typeJson) {
-  const type = JSON.parse(typeJson);
-  const typeStr = typeToString(type);
+  let type = __TPJS_TYPE_CACHE__.get(typeJson);
+  if (!type) {
+    type = JSON.parse(typeJson);
+    __TPJS_TYPE_CACHE__.set(typeJson, type);
+  }
+
 
   // ===== Union Types =====
   if (type?.kind === 'union') {
     const ok = type.types.some(member => __matchesType__(value, member));
     if (!ok) {
-       __handleCheckError__(name, typeStr, __valueStr__(value));
+       __handleCheckError__(name, typeToString(type), __valueStr__(value));
     }
     return value;
   }
@@ -279,7 +285,7 @@ function __checkType__(name, value, typeJson) {
   if (Array.isArray(type)) {
     const ok = type.some(member => __matchesType__(value, member));
     if (!ok) {
-       __handleCheckError__(name, typeStr, __valueStr__(value));
+       __handleCheckError__(name, typeToString(type), __valueStr__(value));
     }
     return value;
   }
@@ -288,7 +294,7 @@ function __checkType__(name, value, typeJson) {
   if (type?.kind === 'intersection') {
     const ok = type.types.every(member => __matchesType__(value, member));
     if (!ok) {
-       __handleCheckError__(name, typeStr, __valueStr__(value));
+       __handleCheckError__(name, typeToString(type), __valueStr__(value));
     }
     return value;
   }
@@ -296,7 +302,7 @@ function __checkType__(name, value, typeJson) {
   // ===== Literal Types =====
   if (type?.kind === 'literal') {
     if (value !== type.value) {
-       __handleCheckError__(name, typeStr, __valueStr__(value));
+       __handleCheckError__(name, typeToString(type), __valueStr__(value));
     }
     return value;
   }
@@ -346,7 +352,7 @@ function __checkType__(name, value, typeJson) {
   // ===== Array Types =====
   if (type?.kind === 'array' || type?.kind === 'readonlyArray') {
     if (!Array.isArray(value)) {
-       __handleCheckError__(name, typeStr, typeof value);
+       __handleCheckError__(name, typeToString(type), typeof value);
       return value;
     }
     value.forEach((item, i) => {
