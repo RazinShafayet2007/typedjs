@@ -1,0 +1,5 @@
+
+function checkSmall(data: { name: string; age: number; active: boolean }) {
+  return data;
+}
+export { checkSmall };

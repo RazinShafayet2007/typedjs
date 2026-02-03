@@ -32,8 +32,12 @@
     "dependencies": {
         "acorn": "^8.15.0",
         "acorn-typescript": "^1.4.13",
+        "ajv": "^8.17.1",
+        "benchmark": "^2.1.4",
         "escodegen": "^2.1.0",
-        "estree-walker": "^3.0.3"
+        "estree-walker": "^3.0.3",
+        "runtypes": "^7.0.4",
+        "zod": "^4.3.6"
     },
     "devDependencies": {
         "@types/node": "^25.2.0",
@@ -42,6 +46,7 @@
         "typescript": "^5.9.3"
     },
     "scripts": {
+        "lint": "eslint .",
         "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
         "test:watch": "jest --watch",
         "test:coverage": "jest --coverage",
