@@ -1,4 +1,4 @@
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -24,7 +24,10 @@ function benchmark(name, tjsFile, tsFile) {
   function runTypedJS(file, isProd) {
     const flag = isProd ? '--prod' : '';
     // Use --bench-meta to get internal timing metrics
-    const output = execSync(`node ../src/cli.js ${file} ${flag} --bench-meta`, {
+    const args = ['../src/cli.js', file];
+    if (flag) args.push(flag);
+    args.push('--bench-meta');
+    const output = execFileSync(process.execPath, args, {
       encoding: 'utf-8',
       cwd: __dirname
     });
@@ -79,7 +82,15 @@ function benchmark(name, tjsFile, tsFile) {
 
     // Compile
     const compileStart = Date.now();
-    execSync(`npx tsc ${tsFile} --target ES2020 --module ES2020 --moduleResolution node --esModuleInterop --lib ES2020,DOM`, {
+    const tscPath = path.join(__dirname, '../node_modules/.bin/tsc');
+    execFileSync(tscPath, [
+      tsFile,
+      '--target', 'ES2020',
+      '--module', 'ES2020',
+      '--moduleResolution', 'node',
+      '--esModuleInterop',
+      '--lib', 'ES2020,DOM'
+    ], {
       cwd: __dirname,
       stdio: 'pipe'
     });
@@ -87,7 +98,7 @@ function benchmark(name, tjsFile, tsFile) {
 
     // Execute
     const execStart = Date.now();
-    execSync(`node ${jsFile}`, {
+    execFileSync(process.execPath, [jsFile], {
       encoding: 'utf-8',
       cwd: __dirname
     });

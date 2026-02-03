@@ -3,22 +3,22 @@
     "name": "Simple Benchmark",
     "typedjs": {
       "dev": {
-        "compileTime": "29.77ms",
-        "execTime": "8.79ms",
-        "totalTime": "38.56ms",
+        "compileTime": "32.58ms",
+        "execTime": "4.74ms",
+        "totalTime": "37.32ms",
         "success": true
       },
       "prod": {
-        "compileTime": "28.88ms",
-        "execTime": "8.30ms",
-        "totalTime": "37.18ms",
+        "compileTime": "32.08ms",
+        "execTime": "4.69ms",
+        "totalTime": "36.77ms",
         "success": true
       }
     },
     "typescript": {
-      "compileTime": "7474ms",
-      "execTime": "40ms",
-      "totalTime": "7514ms",
+      "compileTime": "7160ms",
+      "execTime": "41ms",
+      "totalTime": "7201ms",
       "tsSize": "777 bytes",
       "jsSize": "556 bytes",
       "success": true
@@ -28,22 +28,22 @@
     "name": "Complex Benchmark",
     "typedjs": {
       "dev": {
-        "compileTime": "41.91ms",
-        "execTime": "99.21ms",
-        "totalTime": "141.12ms",
+        "compileTime": "69.60ms",
+        "execTime": "23.60ms",
+        "totalTime": "93.19ms",
         "success": true
       },
       "prod": {
-        "compileTime": "43.99ms",
-        "execTime": "91.41ms",
-        "totalTime": "135.39ms",
+        "compileTime": "57.34ms",
+        "execTime": "22.28ms",
+        "totalTime": "79.62ms",
         "success": true
       }
     },
     "typescript": {
-      "compileTime": "7660ms",
-      "execTime": "47ms",
-      "totalTime": "7707ms",
+      "compileTime": "7588ms",
+      "execTime": "51ms",
+      "totalTime": "7639ms",
       "tsSize": "2222 bytes",
       "jsSize": "1629 bytes",
       "success": true
@@ -53,22 +53,22 @@
     "name": "Loop Benchmark (Torture Test)",
     "typedjs": {
       "dev": {
-        "compileTime": "21.96ms",
-        "execTime": "95.52ms",
-        "totalTime": "117.48ms",
+        "compileTime": "24.44ms",
+        "execTime": "11.00ms",
+        "totalTime": "35.44ms",
         "success": true
       },
       "prod": {
-        "compileTime": "21.87ms",
-        "execTime": "97.24ms",
-        "totalTime": "119.11ms",
+        "compileTime": "25.19ms",
+        "execTime": "9.73ms",
+        "totalTime": "34.92ms",
         "success": true
       }
     },
     "typescript": {
-      "compileTime": "7626ms",
-      "execTime": "43ms",
-      "totalTime": "7669ms",
+      "compileTime": "7552ms",
+      "execTime": "42ms",
+      "totalTime": "7594ms",
       "tsSize": "221 bytes",
       "jsSize": "183 bytes",
       "success": true

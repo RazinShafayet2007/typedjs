@@ -21,12 +21,16 @@ Options:
   -v, --version      Show version number
   -h, --help        Show this help message
   --prod            Enable production mode (errors instead of warnings)
+  --strict          Treat runtime type mismatches as errors (even in dev)
+  --keep-temp       Keep generated typedjs_temp.js
   --bench-meta      Internal flag for benchmarking
 `);
   process.exit(0);
 }
 
 const isProd = args.includes('--prod');
+const isStrict = args.includes('--strict');
+const keepTemp = args.includes('--keep-temp') || process.env.TYPEDJS_KEEP_TEMP === "1";
 const fileArg = args.find(a => !a.startsWith('--') && !a.startsWith('-'));
 
 if (!fileArg) {
@@ -55,7 +59,8 @@ if (!staticErrors && isProd) { // staticAnalyze returns false if errors found (w
 // Old minimal analyze (deprecated but keeping for now)
 analyze(typeRegistry);
 
-const output = generate(ast, typeRegistry, isProd ? 'production' : 'development');
+const runtimeMode = isStrict ? 'strict' : (isProd ? 'production' : 'development');
+const output = generate(ast, typeRegistry, runtimeMode);
 const compileTime = performance.now() - compileStart;
 
 const tmpFile = path.resolve("./typedjs_temp.js");
@@ -69,5 +74,7 @@ try {
     const execTime = performance.now() - execStart;
     console.log(`__BENCH__${JSON.stringify({ compileTime, execTime })}`);
   }
-  fs.unlinkSync(tmpFile);
+  if (!keepTemp) {
+    fs.unlinkSync(tmpFile);
+  }
 }

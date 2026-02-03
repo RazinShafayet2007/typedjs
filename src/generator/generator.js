@@ -1,7 +1,9 @@
 // Extended src/generator/generator.js - Full TypeScript type runtime checks
 
+import { Parser } from 'acorn';
 import escodegen from 'escodegen';
 import { walk } from 'estree-walker';
+import { compileCheck } from './compiler.js';
 
 function transformAst(ast, typeRegistry, mode) {
   // Remove compile-time TS nodes
@@ -83,29 +85,7 @@ function transformAst(ast, typeRegistry, mode) {
 
 
 
-  // Helpers for check injection
-  function createCheckCall(name, valueExpr, type) {
-    return {
-      type: 'CallExpression',
-      callee: { type: 'Identifier', name: '__checkType__' },
-      arguments: [
-        { type: 'Literal', value: name },
-        valueExpr,
-        { type: 'Literal', value: JSON.stringify(type) }
-      ]
-    };
-  }
-
-  function createReturnCheckCall(valueExpr, type) {
-    return {
-      type: 'CallExpression',
-      callee: { type: 'Identifier', name: '__checkReturnType__' },
-      arguments: [
-        valueExpr,
-        { type: 'Literal', value: JSON.stringify(type) }
-      ]
-    };
-  }
+  let returnCounter = 0;
 
   const funcTypes = {};
   typeRegistry.forEach(entry => {
@@ -120,18 +100,25 @@ function transformAst(ast, typeRegistry, mode) {
         const params = funcTypes[node.id.name].params;
         const checkStmts = params
           .filter(p => !p.isThis) // Skip 'this' parameter
-          .map(p => ({
-            type: 'VariableDeclaration',
-            kind: 'const',
-            declarations: [{
-              type: 'VariableDeclarator',
-              id: { type: 'Identifier', name: p.name.replace(/^\.\.\./, '') },
-              init: createCheckCall(p.name, { type: 'Identifier', name: `__arg_${p.name.replace(/^\.\.\./, '')}` }, p.type)
-            }]
-          }));
+          .flatMap(p => { // Use flatMap because compileCheck returns multiple statements potentially
+            const varName = p.name.replace(/^\.\.\./, '');
+            // Ensure the parameter is renamed to __arg_name
+            const argName = `__arg_${varName}`;
+
+            // Generate the check code
+            // Note: p.type is the Type Object from the parser (kind: 'number', etc)
+            const checkCode = compileCheck(argName, p.type, mode, varName);
+            if (!checkCode.trim()) return [];
+            try {
+              return Parser.parse(checkCode, { ecmaVersion: 2020 }).body;
+            } catch (e) {
+              throw new Error(`Failed to parse compiled check: ${checkCode}`);
+            }
+          });
 
         node.params = node.params.map((param, i) => {
           if (params[i] && !params[i].isThis) {
+            // ... existing renaming logic ...
             if (param.type === 'RestElement') {
               param.argument.name = `__arg_${param.argument.name}`;
             } else if (param.name !== 'this') {
@@ -141,7 +128,45 @@ function transformAst(ast, typeRegistry, mode) {
           return param;
         });
 
-        node.body.body = [...checkStmts, ...node.body.body];
+        // Add variable restoration (const x = __arg_x) IF we want?
+        // Actually, if we rename params to __arg_x, we should probably 
+        // declare `const x = __arg_x` to keep original function body working without modification?
+        // Wait, the previous logic did:
+        /*
+            type: 'VariableDeclaration',
+            declarations: [{
+              id: { name: 'x' },
+              init: createCheckCall('x', {name: '__arg_x'}, type)
+            }]
+        */
+        // This effectively did `const x = check('x', __arg_x, ...)`
+        // So `x` was the checked value.
+        // We need to maintain this: `const x = __arg_x;` AND then `check(__arg_x)`?
+        // OR `check(__arg_x); const x = __arg_x;`?
+
+        // Let's do:
+        // 1. Rename param to __arg_x
+        // 2. Generate checks for __arg_x
+        // 3. Declare const x = __arg_x
+
+        const restoreStmts = params
+          .filter(p => !p.isThis)
+          .map(p => {
+            const varName = p.name.replace(/^\.\.\./, '');
+            return {
+              type: 'VariableDeclaration',
+              kind: 'const',
+              declarations: [{
+                type: 'VariableDeclarator',
+                id: { type: 'Identifier', name: varName },
+                init: { type: 'Identifier', name: `__arg_${varName}` }
+              }]
+            };
+          });
+
+        node.body.body = [...checkStmts, ...restoreStmts, ...node.body.body];
+
+
       }
     },
     leave(node, parent) {
@@ -149,7 +174,26 @@ function transformAst(ast, typeRegistry, mode) {
         const funcName = parent.parent.id.name;
         const returnType = funcTypes[funcName]?.returnType;
         if (returnType && returnType !== 'any' && node.argument) {
-          node.argument = createReturnCheckCall(node.argument, returnType);
+          const retName = `__ret_${returnCounter++}`;
+          const retDecl = {
+            type: 'VariableDeclaration',
+            kind: 'const',
+            declarations: [{
+              type: 'VariableDeclarator',
+              id: { type: 'Identifier', name: retName },
+              init: node.argument
+            }]
+          };
+          const checkCode = compileCheck(retName, returnType, mode, 'Return value');
+          const checkAst = checkCode.trim() ? Parser.parse(checkCode, { ecmaVersion: 2020 }).body : [];
+          const retStmt = {
+            type: 'ReturnStatement',
+            argument: { type: 'Identifier', name: retName }
+          };
+          const idx = parent.body.indexOf(node);
+          if (idx !== -1) {
+            parent.body.splice(idx, 1, retDecl, ...checkAst, retStmt);
+          }
         }
       }
     }
@@ -247,294 +291,104 @@ function typeToString(t) {
 }
 
 function __handleCheckError__(name, expected, actual) {
-  const message = \`\${name} expected \${expected}, got \${actual}\`;
+  const message = name + ' expected ' + expected + ', got ' + actual;
   
-  if (__TPJS_MODE__ === 'production') {
-     // Production: Error with color (Non-blocking)
-     console.error(
-       \`\${__TPJS_COLORS__.red}[Type Error] \${message}\${__TPJS_COLORS__.reset}\`
-     );
+  if (__TPJS_MODE__ === 'production' || __TPJS_MODE__ === 'strict') {
+     throw new TypeError('[TypedJS] ' + message);
   } else {
-     // Development: Warning with color
-     console.warn(
-       \`\${__TPJS_COLORS__.yellow}[Type warning]\${__TPJS_COLORS__.reset} \${message}\`
+     // Development: Warning (non-blocking)
+     console.error(
+       __TPJS_COLORS__.yellow + '[Type warning]' + __TPJS_COLORS__.reset + ' ' + message
      );
   }
 }
 
-const __TPJS_TYPE_CACHE__ = new Map();
-
-function __checkType__(name, value, typeJson) {
-  let type = __TPJS_TYPE_CACHE__.get(typeJson);
-  if (!type) {
-    type = JSON.parse(typeJson);
-    __TPJS_TYPE_CACHE__.set(typeJson, type);
-  }
-
-
-  // ===== Union Types =====
-  if (type?.kind === 'union') {
-    const ok = type.types.some(member => __matchesType__(value, member));
-    if (!ok) {
-       __handleCheckError__(name, typeToString(type), __valueStr__(value));
-    }
-    return value;
-  }
-  
-  // Legacy array unions
-  if (Array.isArray(type)) {
-    const ok = type.some(member => __matchesType__(value, member));
-    if (!ok) {
-       __handleCheckError__(name, typeToString(type), __valueStr__(value));
-    }
-    return value;
-  }
-
-  // ===== Intersection Types =====
-  if (type?.kind === 'intersection') {
-    const ok = type.types.every(member => __matchesType__(value, member));
-    if (!ok) {
-       __handleCheckError__(name, typeToString(type), __valueStr__(value));
-    }
-    return value;
-  }
-
-  // ===== Literal Types =====
-  if (type?.kind === 'literal') {
-    if (value !== type.value) {
-       __handleCheckError__(name, typeToString(type), __valueStr__(value));
-    }
-    return value;
-  }
-
-  // ===== Enum Reference =====
-  if (type?.kind === 'enumRef') {
-    const enumValues = Object.values(type.values || {});
-    if (!enumValues.includes(value)) {
-       __handleCheckError__(name, 'enum ' + type.name, __valueStr__(value));
-    }
-    return value;
-  }
-
-  // ===== Primitive Types =====
-  if (typeof type === 'string') {
-    if (type === 'any' || type === 'unknown') return value;
-    if (type === 'never') {
-      __handleCheckError__(name, 'never (should not have any value)', 'value');
-      return value;
-    }
-    if (type === 'void') {
-      if (value !== undefined) {
-         __handleCheckError__(name, 'void', __valueStr__(value));
-      }
-      return value;
-    }
-    
-    const primitiveChecks = {
-      'string': () => typeof value === 'string',
-      'number': () => typeof value === 'number',
-      'boolean': () => typeof value === 'boolean',
-      'null': () => value === null,
-      'undefined': () => value === undefined,
-      'bigint': () => typeof value === 'bigint',
-      'symbol': () => typeof value === 'symbol',
-      'object': () => typeof value === 'object' && value !== null
-    };
-    
-    if (primitiveChecks[type]) {
-      if (!primitiveChecks[type]()) {
-         __handleCheckError__(name, type, typeof value);
-      }
-      return value;
-    }
-  }
-
-  // ===== Array Types =====
-  if (type?.kind === 'array' || type?.kind === 'readonlyArray') {
-    if (!Array.isArray(value)) {
-       __handleCheckError__(name, typeToString(type), typeof value);
-      return value;
-    }
-    value.forEach((item, i) => {
-      __checkType__(name + '[' + i + ']', item, JSON.stringify(type.elementType));
-    });
-    return value;
-  }
-
-  // ===== Tuple Types =====
-  if (type?.kind === 'tuple') {
-    if (!Array.isArray(value)) {
-       __handleCheckError__(name, 'tuple', typeof value);
-      return value;
-    }
-    
-    let requiredCount = 0;
-    type.elements.forEach(el => {
-      if (el?.kind !== 'optionalElement' && el?.kind !== 'rest') requiredCount++;
-    });
-    
-    if (value.length < requiredCount) {
-       __handleCheckError__(name, 'at least ' + requiredCount + ' elements', value.length);
-    }
-    
-    for (let i = 0; i < type.elements.length; i++) {
-      const el = type.elements[i];
-      if (el?.kind === 'rest') {
-        // Check all remaining elements against rest type
-        for (let j = i; j < value.length; j++) {
-          const restElType = el.type?.elementType || el.type;
-          __checkType__(name + '[' + j + ']', value[j], JSON.stringify(restElType));
-        }
-        break;
-      }
-      
-      const elType = el?.kind === 'optionalElement' ? el.type : 
-                     el?.kind === 'labeled' ? el.type : el;
-                     
-      if (i < value.length) {
-        __checkType__(name + '[' + i + ']', value[i], JSON.stringify(elType));
-      }
-    }
-    return value;
-  }
-
-  // ===== Map Types =====
-  if (type?.kind === 'map') {
-    if (!(value instanceof Map)) {
-       __handleCheckError__(name, 'Map', typeof value);
-      return value;
-    }
-    for (const [k, v] of value.entries()) {
-      __checkType__(name + '.key', k, JSON.stringify(type.keyType));
-      __checkType__(name + '.value', v, JSON.stringify(type.valueType));
-    }
-    return value;
-  }
-
-  // ===== Set Types =====
-  if (type?.kind === 'set') {
-    if (!(value instanceof Set)) {
-       __handleCheckError__(name, 'Set', typeof value);
-      return value;
-    }
-    let i = 0;
-    for (const item of value) {
-      __checkType__(name + '[#' + i + ']', item, JSON.stringify(type.elementType));
-      i++;
-    }
-    return value;
-  }
-
-  // ===== Record Types =====
-  if (type?.kind === 'record') {
-    if (typeof value !== 'object' || value === null) {
-       __handleCheckError__(name, 'Record', typeof value);
-      return value;
-    }
-    for (const [k, v] of Object.entries(value)) {
-      __checkType__(name + '["' + k + '"]', v, JSON.stringify(type.valueType));
-    }
-    return value;
-  }
-
-  // ===== Promise Types =====
-  if (type?.kind === 'promise') {
-    if (!(value instanceof Promise)) {
-       __handleCheckError__(name, 'Promise', typeof value);
-    }
-    return value;
-  }
-  
-  // ===== Optional Types =====
-  if (type?.kind === 'optional') {
-    if (value === undefined) return value;
-    return __checkType__(name, value, JSON.stringify(type.type));
-  }
-
-  // ===== Object Shapes =====
-  if (typeof type === 'object' && type !== null) {
-    if (typeof value !== 'object' || value === null) {
-       __handleCheckError__(name, 'object', typeof value);
-      return value;
-    }
-    
-    for (const [prop, pt] of Object.entries(type)) {
-      if (prop.startsWith('__')) continue; // Skip meta properties
-      
-      const isOptional = pt?.kind === 'optional';
-      const actualType = isOptional ? pt.type : pt;
-      
-      if (!(prop in value)) {
-        if (!isOptional) {
-           __handleCheckError__(name, 'required property "' + prop + '"', 'missing');
-        }
-        continue;
-      }
-      
-      __checkType__(name + '.' + prop, value[prop], JSON.stringify(actualType));
-    }
-    
-    // Check index signature if present
-    if (type.__indexSignature) {
-      for (const [k, v] of Object.entries(value)) {
-        if (!(k in type) || k.startsWith('__')) {
-          __checkType__(name + '["' + k + '"]', v, JSON.stringify(type.__indexSignature.valueType));
-        }
-      }
-    }
-    
-    return value;
-  }
-
-  return value;
+function __checkUnion__(value, type) {
+  return type.types.some(member => __matchesType__(value, member));
 }
 
-// Helper to check if a value matches a type (boolean)
 function __matchesType__(value, type) {
+  if (!type) return true;
   if (typeof type === 'string') {
-    if (type === 'any' || type === 'unknown') return true;
-    if (type === 'never') return false;
-    if (type === 'void') return value === undefined;
-    if (type === 'string') return typeof value === 'string';
-    if (type === 'number') return typeof value === 'number';
-    if (type === 'boolean') return typeof value === 'boolean';
-    if (type === 'null') return value === null;
-    if (type === 'undefined') return value === undefined;
-    if (type === 'bigint') return typeof value === 'bigint';
-    if (type === 'symbol') return typeof value === 'symbol';
-    if (type === 'object') return typeof value === 'object' && value !== null;
-    return false;
+      if (type === 'any' || type === 'unknown') return true;
+      if (type === 'void') return value === undefined;
+      if (type === 'never') return false;
+      if (type === 'null') return value === null;
+      if (type === 'undefined') return value === undefined;
+      if (type === 'object') return typeof value === 'object' && value !== null;
+      if (type === 'array') return Array.isArray(value);
+      return typeof value === type;
   }
-  
-  if (type?.kind === 'literal') return value === type.value;
-  if (type?.kind === 'union') return type.types.some(t => __matchesType__(value, t));
-  if (type?.kind === 'intersection') return type.types.every(t => __matchesType__(value, t));
-  if (type?.kind === 'enumRef') return Object.values(type.values || {}).includes(value);
-  if (type?.kind === 'array' || type?.kind === 'readonlyArray') {
-    if (!Array.isArray(value)) return false;
-    return value.every(item => __matchesType__(item, type.elementType));
+  if (type.kind === 'literal') return value === type.value;
+  if (type.kind === 'optional') {
+     if (value === undefined) return true;
+     return __matchesType__(value, type.type);
   }
-  
-  // For complex types, defer to runtime check
-  return true;
+  if (type.kind === 'union') return type.types.some(t => __matchesType__(value, t));
+  if (type.kind === 'intersection') return type.types.every(t => __matchesType__(value, t));
+  if (typeof type === 'object' && type !== null && !Array.isArray(type) && !type.kind) {
+     if (typeof value !== 'object' || value === null) return false;
+     return Object.entries(type)
+       .filter(([k]) => !k.startsWith('__'))
+       .every(([k, t]) => __matchesType__(value[k], t));
+  }
+  if (type.kind === 'object') {
+     if (typeof value !== 'object' || value === null) return false;
+     if (!type.properties) return true;
+     return Object.entries(type.properties).every(([k, t]) => __matchesType__(value[k], t));
+  }
+  if (type.kind === 'enumRef') {
+     return Object.values(type.values || {}).includes(value);
+  }
+  if (type.kind === 'array') {
+     if (!Array.isArray(value)) return false;
+     return value.every(v => __matchesType__(v, type.elementType));
+  }
+  if (type.kind === 'readonlyArray') {
+     if (!Array.isArray(value)) return false;
+     return value.every(v => __matchesType__(v, type.elementType));
+  }
+  if (type.kind === 'tuple') {
+     if (!Array.isArray(value)) return false;
+     return (type.elements || []).every((el, i) => {
+        if (el?.kind === 'rest') return value.slice(i).every(v => __matchesType__(v, el.type));
+        const elemType = el?.type || el;
+        if (el?.kind === 'optionalElement' || el?.optional) {
+           if (value.length <= i) return true;
+           return __matchesType__(value[i], elemType);
+        }
+        return __matchesType__(value[i], elemType);
+     });
+  }
+  if (type.kind === 'record') {
+     if (typeof value !== 'object' || value === null || Array.isArray(value)) return false;
+     return Object.values(value).every(v => __matchesType__(v, type.valueType));
+  }
+  if (type.kind === 'map') {
+     if (!(value instanceof Map)) return false;
+     for (const [k, v] of value.entries()) {
+       if (!__matchesType__(k, type.keyType)) return false;
+       if (!__matchesType__(v, type.valueType)) return false;
+     }
+     return true;
+  }
+  if (type.kind === 'set') {
+     if (!(value instanceof Set)) return false;
+     for (const v of value.values()) {
+       if (!__matchesType__(v, type.elementType)) return false;
+     }
+     return true;
+  }
+  return true; 
 }
 
-// Helper to stringify values for error messages
 function __valueStr__(value) {
-  if (value === null) return 'null';
-  if (value === undefined) return 'undefined';
-  if (typeof value === 'symbol') return 'symbol';
-  if (typeof value === 'bigint') return value.toString() + 'n';
-  if (typeof value === 'function') return 'function';
   try {
-    return JSON.stringify(value);
-  } catch {
-    return typeof value;
+    if (typeof value === 'object') return JSON.stringify(value);
+    return String(value);
+  } catch (e) {
+    return String(value);
   }
-}
-
-function __checkReturnType__(value, typeJson) {
-  return __checkType__('return', value, typeJson);
 }
 
 // ===== End TypedJS Runtime Helpers =====

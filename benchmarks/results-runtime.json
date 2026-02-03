@@ -1,0 +1,44 @@
+[
+  {
+    "name": "Simple Benchmark",
+    "typedjs": {
+      "dev": {
+        "avgMs": "36.39"
+      },
+      "prod": {
+        "avgMs": "42.54"
+      }
+    },
+    "typescript": {
+      "avgMs": "37.44"
+    }
+  },
+  {
+    "name": "Complex Benchmark",
+    "typedjs": {
+      "dev": {
+        "avgMs": "63.27"
+      },
+      "prod": {
+        "avgMs": "57.60"
+      }
+    },
+    "typescript": {
+      "avgMs": "44.33"
+    }
+  },
+  {
+    "name": "Loop Benchmark (Torture Test)",
+    "typedjs": {
+      "dev": {
+        "avgMs": "48.39"
+      },
+      "prod": {
+        "avgMs": "42.18"
+      }
+    },
+    "typescript": {
+      "avgMs": "39.98"
+    }
+  }
+]

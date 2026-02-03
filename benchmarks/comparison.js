@@ -7,9 +7,17 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { generate } from '../src/generator/generator.js';
 import { parseCode } from '../src/parser/parser.js';
+import { checkSmall as codegenSmall, checkMedium as codegenMedium } from './codegen/manual.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const suite = new Benchmark.Suite;
+const optionalNotes = [];
+
+async function tryImportIfExists(relPath) {
+    const fullPath = path.join(__dirname, relPath);
+    if (!fs.existsSync(fullPath)) return null;
+    return import(fullPath);
+}
 
 // Helper to compile TypedJS source to JS
 async function compileTypedJS(source, name) {
@@ -48,7 +56,7 @@ const ajvSmallCompiler = ajv.compile({
 });
 
 // --- Runtypes ---
-const rtSmall = rt.Record({
+const rtSmall = rt.Object({
     name: rt.String,
     age: rt.Number,
     active: rt.Boolean,
@@ -101,11 +109,11 @@ const ajvMediumCompiler = ajv.compile({
 });
 
 // --- Runtypes ---
-const rtMedium = rt.Record({
+const rtMedium = rt.Object({
     id: rt.Number,
     name: rt.String,
     tags: rt.Array(rt.String),
-    address: rt.Record({
+    address: rt.Object({
         street: rt.String,
         zip: rt.String
     })
@@ -137,6 +145,12 @@ const mediumData = {
     address: { street: "123 Main St", zip: "10001" }
 };
 
+// --- Codegen (Optional: typia, ts-auto-guard) ---
+const typiaLib = await tryImportIfExists('codegen/typia.js');
+if (!typiaLib) optionalNotes.push('typia (codegen) skipped: benchmarks/codegen/typia.js not found');
+
+const tsAutoGuardLib = await tryImportIfExists('codegen/ts-auto-guard.js');
+if (!tsAutoGuardLib) optionalNotes.push('ts-auto-guard (codegen) skipped: benchmarks/codegen/ts-auto-guard.js not found');
 
 // ============================================================================
 // SUITE SETUP
@@ -149,6 +163,9 @@ Node: ${process.version}
 Platform: ${process.platform} ${process.arch}
 ========================================
 `);
+if (optionalNotes.length > 0) {
+    console.log(optionalNotes.join('\n') + '\n');
+}
 
 // --- SMALL ---
 suite
@@ -164,8 +181,24 @@ suite
     .add('Runtypes (Small)', function () {
         rtSmall.check(smallData);
     })
+    .add('Codegen (Manual, Small)', function () {
+        codegenSmall(smallData);
+    });
 
-    // --- MEDIUM ---
+if (typiaLib?.checkSmall) {
+    suite.add('typia (Small)', function () {
+        typiaLib.checkSmall(smallData);
+    });
+}
+
+if (tsAutoGuardLib?.checkSmall) {
+    suite.add('ts-auto-guard (Small)', function () {
+        tsAutoGuardLib.checkSmall(smallData);
+    });
+}
+
+// --- MEDIUM ---
+suite
     .add('TypedJS (Medium)', function () {
         mediumLib.checkMedium(mediumData);
     })
@@ -178,7 +211,23 @@ suite
     .add('Runtypes (Medium)', function () {
         rtMedium.check(mediumData);
     })
+    .add('Codegen (Manual, Medium)', function () {
+        codegenMedium(mediumData);
+    });
 
+if (typiaLib?.checkMedium) {
+    suite.add('typia (Medium)', function () {
+        typiaLib.checkMedium(mediumData);
+    });
+}
+
+if (tsAutoGuardLib?.checkMedium) {
+    suite.add('ts-auto-guard (Medium)', function () {
+        tsAutoGuardLib.checkMedium(mediumData);
+    });
+}
+
+suite
     .on('cycle', function (event) {
         console.log(String(event.target));
     })
