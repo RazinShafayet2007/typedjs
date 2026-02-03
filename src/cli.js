@@ -7,8 +7,27 @@ import { generate } from "./generator/generator.js";
 
 const args = process.argv.slice(2);
 
+if (args.includes('-v') || args.includes('--version')) {
+  const packageJson = JSON.parse(fs.readFileSync(new URL('../package.json', import.meta.url)));
+  console.log(`v${packageJson.version}`);
+  process.exit(0);
+}
+
+if (args.includes('-h') || args.includes('--help')) {
+  console.log(`
+Usage: typedjs <file.tjs> [options]
+
+Options:
+  -v, --version      Show version number
+  -h, --help        Show this help message
+  --prod            Enable production mode (errors instead of warnings)
+  --bench-meta      Internal flag for benchmarking
+`);
+  process.exit(0);
+}
+
 const isProd = args.includes('--prod');
-const fileArg = args.find(a => !a.startsWith('--'));
+const fileArg = args.find(a => !a.startsWith('--') && !a.startsWith('-'));
 
 if (!fileArg) {
   console.error("Usage: typedjs <file.tjs> [--prod]");
