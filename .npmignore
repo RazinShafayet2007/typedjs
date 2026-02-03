@@ -1,10 +1,35 @@
-.vscode/
+# Source Control
 .git/
 .gitignore
-.npmignore
+
+# Editor
+.vscode/
+
+# Dependencies
 node_modules/
 package-lock.json
+
+# Tests & Benchmarks
+tests/
+benchmarks/
+coverage/
+
+# CI / CD
+.github/
+
+# Config Files
+eslint.config.js
 eslint.config.cjs
+jest.config.cjs
+
+# Examples & Temp files
 example.js
 example.tjs
 reproduction.tjs
+*.log
+typedjs_temp.js
+temp_*.js
+temp_*.tjs
+
+# Misc
+.DS_Store
