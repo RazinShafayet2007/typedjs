@@ -81,10 +81,7 @@ function transformAst(ast, typeRegistry, mode) {
     }
   });
 
-  // If production mode, stop here! (No runtime checks)
-  if (mode === 'production') {
-    return ast;
-  }
+
 
   // Helpers for check injection
   function createCheckCall(name, valueExpr, type) {
@@ -169,9 +166,7 @@ export function generate(ast, typeRegistry, mode = 'development') {
     comment: true,
   });
 
-  if (mode === 'production') {
-    return transformed;
-  }
+
 
   // Generate enum runtime objects
   const enumDefs = typeRegistry
@@ -185,6 +180,13 @@ export function generate(ast, typeRegistry, mode = 'development') {
 
   const helpers = `
 // ===== TypedJS Runtime Helpers =====
+const __TPJS_MODE__ = "${mode}";
+const __TPJS_COLORS__ = {
+  reset: "\\x1b[0m",
+  yellow: "\\x1b[33m",
+  red: "\\x1b[31m",
+  bold: "\\x1b[1m"
+};
 
 function typeToString(t) {
   if (!t) return 'unknown';
@@ -244,6 +246,22 @@ function typeToString(t) {
   return String(t);
 }
 
+function __handleCheckError__(name, expected, actual) {
+  const message = \`\${name} expected \${expected}, got \${actual}\`;
+  
+  if (__TPJS_MODE__ === 'production') {
+     // Production: Error with color (Non-blocking)
+     console.error(
+       \`\${__TPJS_COLORS__.red}[Type Error] \${message}\${__TPJS_COLORS__.reset}\`
+     );
+  } else {
+     // Development: Warning with color
+     console.warn(
+       \`\${__TPJS_COLORS__.yellow}[Type warning]\${__TPJS_COLORS__.reset} \${message}\`
+     );
+  }
+}
+
 function __checkType__(name, value, typeJson) {
   const type = JSON.parse(typeJson);
   const typeStr = typeToString(type);
@@ -252,7 +270,7 @@ function __checkType__(name, value, typeJson) {
   if (type?.kind === 'union') {
     const ok = type.types.some(member => __matchesType__(value, member));
     if (!ok) {
-      console.warn('[Type warning] ' + name + ' expected ' + typeStr + ', got ' + __valueStr__(value));
+       __handleCheckError__(name, typeStr, __valueStr__(value));
     }
     return value;
   }
@@ -261,7 +279,7 @@ function __checkType__(name, value, typeJson) {
   if (Array.isArray(type)) {
     const ok = type.some(member => __matchesType__(value, member));
     if (!ok) {
-      console.warn('[Type warning] ' + name + ' expected ' + typeStr + ', got ' + __valueStr__(value));
+       __handleCheckError__(name, typeStr, __valueStr__(value));
     }
     return value;
   }
@@ -270,7 +288,7 @@ function __checkType__(name, value, typeJson) {
   if (type?.kind === 'intersection') {
     const ok = type.types.every(member => __matchesType__(value, member));
     if (!ok) {
-      console.warn('[Type warning] ' + name + ' expected ' + typeStr + ', got ' + __valueStr__(value));
+       __handleCheckError__(name, typeStr, __valueStr__(value));
     }
     return value;
   }
@@ -278,7 +296,7 @@ function __checkType__(name, value, typeJson) {
   // ===== Literal Types =====
   if (type?.kind === 'literal') {
     if (value !== type.value) {
-      console.warn('[Type warning] ' + name + ' expected ' + typeStr + ', got ' + __valueStr__(value));
+       __handleCheckError__(name, typeStr, __valueStr__(value));
     }
     return value;
   }
@@ -287,7 +305,7 @@ function __checkType__(name, value, typeJson) {
   if (type?.kind === 'enumRef') {
     const enumValues = Object.values(type.values || {});
     if (!enumValues.includes(value)) {
-      console.warn('[Type warning] ' + name + ' expected enum ' + type.name + ', got ' + __valueStr__(value));
+       __handleCheckError__(name, 'enum ' + type.name, __valueStr__(value));
     }
     return value;
   }
@@ -296,12 +314,12 @@ function __checkType__(name, value, typeJson) {
   if (typeof type === 'string') {
     if (type === 'any' || type === 'unknown') return value;
     if (type === 'never') {
-      console.warn('[Type warning] ' + name + ' has type never (should not have any value)');
+      __handleCheckError__(name, 'never (should not have any value)', 'value');
       return value;
     }
     if (type === 'void') {
       if (value !== undefined) {
-        console.warn('[Type warning] ' + name + ' expected void, got ' + __valueStr__(value));
+         __handleCheckError__(name, 'void', __valueStr__(value));
       }
       return value;
     }
@@ -319,7 +337,7 @@ function __checkType__(name, value, typeJson) {
     
     if (primitiveChecks[type]) {
       if (!primitiveChecks[type]()) {
-        console.warn('[Type warning] ' + name + ' expected ' + type + ', got ' + typeof value);
+         __handleCheckError__(name, type, typeof value);
       }
       return value;
     }
@@ -328,7 +346,7 @@ function __checkType__(name, value, typeJson) {
   // ===== Array Types =====
   if (type?.kind === 'array' || type?.kind === 'readonlyArray') {
     if (!Array.isArray(value)) {
-      console.warn('[Type warning] ' + name + ' expected ' + typeStr + ', got ' + typeof value);
+       __handleCheckError__(name, typeStr, typeof value);
       return value;
     }
     value.forEach((item, i) => {
@@ -340,7 +358,7 @@ function __checkType__(name, value, typeJson) {
   // ===== Tuple Types =====
   if (type?.kind === 'tuple') {
     if (!Array.isArray(value)) {
-      console.warn('[Type warning] ' + name + ' expected tuple, got ' + typeof value);
+       __handleCheckError__(name, 'tuple', typeof value);
       return value;
     }
     
@@ -350,7 +368,7 @@ function __checkType__(name, value, typeJson) {
     });
     
     if (value.length < requiredCount) {
-      console.warn('[Type warning] ' + name + ' expected at least ' + requiredCount + ' elements, got ' + value.length);
+       __handleCheckError__(name, 'at least ' + requiredCount + ' elements', value.length);
     }
     
     for (let i = 0; i < type.elements.length; i++) {
@@ -377,7 +395,7 @@ function __checkType__(name, value, typeJson) {
   // ===== Map Types =====
   if (type?.kind === 'map') {
     if (!(value instanceof Map)) {
-      console.warn('[Type warning] ' + name + ' expected Map, got ' + typeof value);
+       __handleCheckError__(name, 'Map', typeof value);
       return value;
     }
     for (const [k, v] of value.entries()) {
@@ -390,7 +408,7 @@ function __checkType__(name, value, typeJson) {
   // ===== Set Types =====
   if (type?.kind === 'set') {
     if (!(value instanceof Set)) {
-      console.warn('[Type warning] ' + name + ' expected Set, got ' + typeof value);
+       __handleCheckError__(name, 'Set', typeof value);
       return value;
     }
     let i = 0;
@@ -404,7 +422,7 @@ function __checkType__(name, value, typeJson) {
   // ===== Record Types =====
   if (type?.kind === 'record') {
     if (typeof value !== 'object' || value === null) {
-      console.warn('[Type warning] ' + name + ' expected Record, got ' + typeof value);
+       __handleCheckError__(name, 'Record', typeof value);
       return value;
     }
     for (const [k, v] of Object.entries(value)) {
@@ -416,7 +434,7 @@ function __checkType__(name, value, typeJson) {
   // ===== Promise Types =====
   if (type?.kind === 'promise') {
     if (!(value instanceof Promise)) {
-      console.warn('[Type warning] ' + name + ' expected Promise, got ' + typeof value);
+       __handleCheckError__(name, 'Promise', typeof value);
     }
     return value;
   }
@@ -430,7 +448,7 @@ function __checkType__(name, value, typeJson) {
   // ===== Object Shapes =====
   if (typeof type === 'object' && type !== null) {
     if (typeof value !== 'object' || value === null) {
-      console.warn('[Type warning] ' + name + ' expected object, got ' + typeof value);
+       __handleCheckError__(name, 'object', typeof value);
       return value;
     }
     
@@ -442,7 +460,7 @@ function __checkType__(name, value, typeJson) {
       
       if (!(prop in value)) {
         if (!isOptional) {
-          console.warn('[Type warning] ' + name + ' missing required property "' + prop + '"');
+           __handleCheckError__(name, 'required property "' + prop + '"', 'missing');
         }
         continue;
       }
